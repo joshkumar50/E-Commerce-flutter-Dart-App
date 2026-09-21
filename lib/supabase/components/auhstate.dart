@@ -1,28 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:opem/screens/buy_screen.dart';
-import 'package:opem/screens/register_screen.dart';
-import 'package:supabase/supabase.dart' as supabase;
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-class AuthState<T extends StatefulWidget> extends SupabaseAuthState<T> {
-  @override
-  void onUnauthenticated() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen()));
-  }
-
-  @override
-  void onAuthenticated(supabase.Session session) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => BuyScreen()));
-  }
-
-  @override
-  void onPasswordRecovery(supabase.Session session) {
-    Navigator.pushNamedAndRemoveUntil(
-        context, '/profile/changePassword', (route) => false);
-  }
-
-  @override
-  void onErrorAuthenticating(String message) {
-    print('***** onErrorAuthenticating: $message');
-  }
-}
+// This file is intentionally left as a compatibility shim.
+// The old SupabaseAuthState mixin was removed in supabase_flutter v2.x.
+// Auth state changes are now handled by listening to
+// Supabase.instance.client.auth.onAuthStateChange in main.dart / router.
+//
+// This file can be deleted after all references are cleaned up.

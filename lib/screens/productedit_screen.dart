@@ -1,104 +1,147 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:xid/xid.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:opem/models/product.dart';
+import 'package:opem/services/product_service.dart';
 
+/// Allows editing the title, description, and price of an existing product.
 class ProductEditScreen extends StatefulWidget {
-  final title;
-  final description;
-  final price;
-  final id;
-  final image;
-  final Pid;
-  const ProductEditScreen({Key? key, required this.Pid,required this.title,required this.description,required this.price,required this.id,required this.image}) : super(key: key);
+  final Product product;
+  const ProductEditScreen({super.key, required this.product});
 
   @override
   State<ProductEditScreen> createState() => _ProductEditScreenState();
 }
 
 class _ProductEditScreenState extends State<ProductEditScreen> {
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _priceCtrl;
+  final _formKey = GlobalKey<FormState>();
 
-  TextEditingController productTitleET = TextEditingController();
-  TextEditingController productDescET = TextEditingController();
-  TextEditingController productPriceET = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController(text: widget.product.title);
+    _descCtrl = TextEditingController(text: widget.product.description);
+    _priceCtrl = TextEditingController(text: widget.product.price.toString());
+  }
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _descCtrl.dispose();
+    _priceCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _update() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    EasyLoading.show(status: 'Updating…');
+    try {
+      await productService.updateProduct(widget.product.id, {
+        'title': _titleCtrl.text.trim(),
+        'description': _descCtrl.text.trim(),
+        'price': double.parse(_priceCtrl.text.trim()),
+      });
+      EasyLoading.showSuccess('Updated!');
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      EasyLoading.showError('Update failed: $e');
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    EasyLoading.show(status: 'Deleting…');
+    try {
+      await productService.deleteProduct(
+          id: widget.product.id, pid: widget.product.pid);
+      EasyLoading.showSuccess('Deleted');
+      if (mounted) {
+        Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      EasyLoading.showError('Delete failed: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(backgroundColor: Colors.black,),
-      body: SingleChildScrollView(
-        child: Column(children: [
-          Center(child: Container(width:200,child: TextFormField(controller: productTitleET,decoration:InputDecoration(hintText: widget.title),))),
-          Image.network(widget.image),
-          Center(child: Container(width:200,child: TextFormField(controller: productDescET,decoration:InputDecoration(hintText: widget.description),))),
-          Center(child: Container(width:200,child: TextFormField(controller: productPriceET,decoration:InputDecoration(hintText: widget.price.toString()),))),
-          Row(mainAxisAlignment:MainAxisAlignment.center,crossAxisAlignment:CrossAxisAlignment.center,children: [
-            ElevatedButton(onPressed: () async {
-              if(productTitleET.text!=null&&productTitleET.text!=""&&productDescET.text!=null&&productDescET.text!=""&&productPriceET.text!=null&&productPriceET.text!=""){
-                final response = await Supabase.instance.client.from("Products").update({
-                  if(productTitleET.text!=null&&productTitleET.text!="")"title":productTitleET.text,
-                  if(productDescET.text!=null&&productDescET.text!="")"description":productDescET.text,
-                  if(productPriceET.text!=null&&productPriceET.text!="")"price":double.parse(productPriceET.text),
-                }).eq("id", widget.id).execute().whenComplete(() {
-                  Navigator.pop(context);
-                  Fluttertoast.showToast(msg: "UPDATED");
-                });
-              }else{
-                Fluttertoast.showToast(msg: "Must complete at least 1 field");
-              }
-
-            }, child: Text("Update")),
-            SizedBox(width: 25,),
-            ElevatedButton(onPressed: () async {
-              timetochoose(context);
-
-
-
-            }, child: Text("Remove")),
-          ],),
-        ],),
+      appBar: AppBar(
+        title: const Text('Edit Product'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: _confirmDelete,
+          ),
+        ],
       ),
-    );
-  }
-
-  timetochoose(BuildContext context) {
-
-    // set up the buttons
-    Widget cancelButton = TextButton(
-      child: Text("Cancel"),
-      onPressed:  () {
-        Navigator.of(context, rootNavigator: true).pop('dialog');
-      },
-    );
-    Widget continueButton = TextButton(
-      child: Text("Delete"),
-      onPressed:  () async {
-        final response = await Supabase.instance.client.from("Products").delete().eq("id", widget.id).execute().whenComplete(() async {
-          final responseImage = await Supabase.instance.client.storage.from("product-images").remove([widget.Pid]).whenComplete(() {
-            Fluttertoast.showToast(msg: "DELETED");
-            Navigator.of(context, rootNavigator: true).pop('dialog');
-            Navigator.pop(context);
-          });
-        });
-      },
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("Remove post"),
-      content: Text("Are you sure?"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              if (widget.product.image.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(widget.product.image,
+                      height: 180, width: double.infinity, fit: BoxFit.cover),
+                ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Title', border: OutlineInputBorder()),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                    labelText: 'Description', border: OutlineInputBorder()),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _priceCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                    labelText: 'Price (USD)', border: OutlineInputBorder()),
+                validator: (v) =>
+                    double.tryParse(v ?? '') == null ? 'Enter a valid price' : null,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                    onPressed: _update, child: const Text('Save Changes')),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,75 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:opem/supabase/components/auhstate.dart';
-import 'package:supabase/supabase.dart' as supabase;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '/utils/helpers.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:opem/services/auth_service.dart';
+import 'package:opem/utils/helpers.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
-  _ForgotPasswordState createState() => _ForgotPasswordState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordState();
 }
 
-class _ForgotPasswordState extends AuthState<ForgotPasswordScreen> {
-  final formKey = GlobalKey<FormState>();
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-
+class _ForgotPasswordState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   String _email = '';
 
-  Future _onPasswordRecoverPress(BuildContext context) async {
-    final form = formKey.currentState;
+  Future<void> _sendReset() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    _formKey.currentState!.save();
 
-    if (form != null && form.validate()) {
-      form.save();
-      FocusScope.of(context).unfocus();
-
-      final response = await Supabase.instance.client.auth.api
-          .resetPasswordForEmail(_email,
-          options: supabase.AuthOptions(redirectTo: authRedirectUri));
-      if (response.error != null) {
-        showMessage('Password recovery failed: ${response.error!.message}');
-      } else {
-        showMessage('Please check your email for further instructions.');
-      }
+    EasyLoading.show(status: 'Sending reset email…');
+    try {
+      await authService.resetPassword(_email);
+      EasyLoading.showSuccess('Check your email for reset instructions.');
+    } catch (e) {
+      EasyLoading.showError('Failed: $e');
     }
-  }
-
-  void showMessage(String message) {
-    final snackbar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(scaffoldKey.currentContext!).showSnackBar(snackbar);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: const Text('Forgot password'),
-      ),
+      appBar: AppBar(title: const Text('Forgot Password')),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(24),
         child: Form(
-          key: formKey,
+          key: _formKey,
           child: Column(
-            children: <Widget>[
-              const SizedBox(height: 25.0),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               TextFormField(
-                onSaved: (value) => _email = value ?? '',
-                validator: (val) => validateEmail(val),
+                onSaved: (v) => _email = v?.trim() ?? '',
+                validator: validateEmail,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  hintText: 'Enter your email address',
+                  labelText: 'Email address',
+                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 35.0),
-              ElevatedButton(
-                onPressed: () {
-                  _onPasswordRecoverPress(context);
-                },
-                child: const Text(
-                  'Send reset password instructions',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _sendReset,
+                  child: const Text('Send Reset Instructions'),
                 ),
-              )
+              ),
             ],
           ),
         ),

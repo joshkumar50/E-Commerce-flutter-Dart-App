@@ -1,0 +1,8 @@
+# Android Release Keystore Configuration
+# Copy this file to android/key.properties and replace with your actual keystore details.
+# NEVER commit android/key.properties or *.jks / *.keystore files to Git!
+
+keyAlias=upload
+keyPassword=YOUR_UPLOAD_KEY_PASSWORD
+storePassword=YOUR_KEYSTORE_PASSWORD
+storeFile=../upload-keystore.jks

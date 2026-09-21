@@ -1,96 +1,95 @@
-import 'dart:io';
-import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:opem/models/product.dart';
 import 'package:opem/provider/user_provider.dart';
-import 'package:provider/provider.dart' as proveedor;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:xid/xid.dart';
-import 'package:http/http.dart' as http;
+import 'package:opem/services/order_service.dart';
+import 'package:provider/provider.dart';
 
-class ProductDetailsScreen extends StatefulWidget {
-  final title;
-  final price;
-  final description;
-  final owner;
-  final image;
-  final city;
-  const ProductDetailsScreen({Key? key, required this.city, required this.title,required this.price,required this.description, required this.owner,required this.image}) : super(key: key);
+/// Displays the full details of a [Product] and allows the user to buy it.
+class ProductDetailsScreen extends StatelessWidget {
+  final Product product;
 
-  @override
-  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
-}
+  const ProductDetailsScreen({super.key, required this.product});
 
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  Future<void> _handleBuy(BuildContext context) async {
+    final userProvider = context.read<UserProvider>();
+    if (userProvider.id == null) {
+      EasyLoading.showError('Not signed in.');
+      return;
+    }
 
-  File? fileWaiting;
-  String? imageId;
-  bool _absorbing=false;
-  var pathing;
-
-
+    EasyLoading.show(status: 'Placing order…');
+    try {
+      await orderService.placeOrder(
+        productName: product.title,
+        price: product.price,
+        buyerId: userProvider.id!,
+        sellerId: product.owner,
+        imageUrl: product.image,
+      );
+      EasyLoading.showSuccess('Order placed!');
+      if (context.mounted) Navigator.pop(context);
+    } catch (e) {
+      EasyLoading.showError('Failed to place order: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    var userProvider = proveedor.Provider.of<UserProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-      ),
-      body: AbsorbPointer(
-        absorbing: _absorbing,
-        child: SingleChildScrollView(
-          child: Container(
-            child: Column(children: [
-              SizedBox(height: 5),
-              Center(child: Container(height: 200,width: 200,
-                  child: CachedNetworkImage(imageUrl: widget.image,))),
-              SizedBox(height: 5,),
-              Center(child: Text(widget.title,style: TextStyle(color: Colors.black,fontSize: 21),),),
-              SizedBox(height: 3,),
-              Center(child: Text("Price: "+widget.price.toString()+" USD",style: TextStyle(color: Colors.black,fontSize: 18),),),
-              SizedBox(height: 3,),
-              Center(child: Text("City: "+widget.city,style: TextStyle(color: Colors.black,fontSize: 18),),),
-              Center(child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(widget.description,style: TextStyle(color: Colors.black,fontSize: 16),),
-              ),),
-              Center(child: ElevatedButton(onPressed: () async {
-                EasyLoading.show(status: "LOADING");
-                setState(() {
-                  _absorbing=true;
-                });
-                var xid = Xid();
-
-                    final response = await Supabase.instance.client.from("Orders").insert({
-                      "Oid":xid.toString(),
-                      "name":widget.title,
-                      "price":double.parse(widget.price.toString()),
-                      "buyer":userProvider.ID,
-                      "seller":widget.owner,
-                      "image":widget.image,
-                      "sended":false,
-                    }).execute().whenComplete(() {
-                      Navigator.pop(context);
-                      EasyLoading.showSuccess("SUCCESS");
-                      setState(() {
-                        _absorbing=false;
-                      });
-                    });
-
-               },child: Text("BUY"),),),
-            ],),
-          ),
+      appBar: AppBar(title: Text(product.title)),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (product.image.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: product.image,
+                height: 260,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) =>
+                    const SizedBox(height: 260, child: Icon(Icons.broken_image)),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(product.title,
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 8),
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  if (product.city.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text('Location: ${product.city}',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(product.description,
+                      style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.shopping_bag_outlined),
+                      label: const Text('Buy Now'),
+                      onPressed: () => _handleBuy(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
-
-
 }

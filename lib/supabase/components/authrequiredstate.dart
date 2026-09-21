@@ -1,12 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:opem/screens/register_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-class AuthRequiredState<T extends StatefulWidget>
-    extends SupabaseAuthRequiredState<T> {
-  @override
-  void onUnauthenticated() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterScreen()));
-
-  }
-}
+// This file is intentionally left as a compatibility shim.
+// SupabaseAuthRequiredState was removed in supabase_flutter v2.x.
+// Auth guards are now handled by go_router's redirect callback in lib/core/router.dart.

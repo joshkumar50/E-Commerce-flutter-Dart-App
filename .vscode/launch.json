@@ -1,0 +1,79 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Customer App (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Admin App (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Customer App (Web Server - Port 8080)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "web-server",
+      "args": [
+        "--web-port",
+        "8080",
+        "--web-hostname",
+        "localhost"
+      ]
+    },
+    {
+      "name": "Admin App (Web Server - Port 8081)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart",
+      "deviceId": "web-server",
+      "args": [
+        "--web-port",
+        "8081",
+        "--web-hostname",
+        "localhost"
+      ]
+    },
+    {
+      "name": "Customer App (Android Flavor)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--flavor",
+        "customer"
+      ]
+    },
+    {
+      "name": "Admin App (Android Flavor)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart",
+      "args": [
+        "--flavor",
+        "admin"
+      ]
+    },
+    {
+      "name": "Customer App (Windows Desktop)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "windows"
+    },
+    {
+      "name": "Admin App (Windows Desktop)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_admin.dart",
+      "deviceId": "windows"
+    }
+  ]
+}

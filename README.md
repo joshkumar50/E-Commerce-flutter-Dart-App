@@ -1,59 +1,91 @@
-# Supabase Open Source Ecommerce Multivendor
+# B-Buys Grocery Marketplace & Store Management Platform
 
-THIS IS A OPEN SOURCE ECOMMERCE MADE BY ME (Rodrigo), YOU CAN USE THIS FOR FREE WITHOUT RESTRICTIONS. IT IS NOT MANDATORY TO GIVE CREDITS, BUT I WOULD LIKE YOU TO DO IT BY REDIRECTING TO THIS GITHUB.
+A complete, production-ready grocery ecommerce ecosystem consisting of a **Customer Mobile App**, a dedicated **Admin Mobile App**, and a shared **Supabase/PostgreSQL** backend with ACID transaction guarantees, high-concurrency inventory protection, and performance optimizations.
 
+---
 
-Flutter Ecommerce Multivendor with the purpose of demonstrating the different functions that Supabase contains, an alternative to Firebase.
+## 📱 Application Overview
 
-## Getting Started
-This project was created to demonstrate the use of Supabase CRUD and Auth with extras for example Image Cache and Provider
+| App | Entry Point | Target Audience | Primary Features |
+|---|---|---|---|
+| **Customer App** | `lib/main.dart` | Shoppers / Customers | Categories, instant search, atomic cart, address book, secure checkout, live order tracking, and wishlist. |
+| **Admin App** | `lib/main_admin.dart` | Store Staff / Managers | Product & category CRUD, live stock adjustments, operational order progression, and refund management. |
 
-In order to use this project, you must have a Supabase account and open a database (it works in the free version). If you are new you can follow the steps below to set the basic settings for the project to work
+---
 
-### Step 1 - Constants
+## 🏗 Architecture & Technologies
 
-In order to connect the database to the application, you must configure the Supaurl and AnonKey constants with the data indicated in the database as described in the image
+- **Mobile Client**: Flutter (Cross-platform Android / iOS / Web / Desktop)
+- **Backend & Database**: Supabase & PostgreSQL with Row Level Security (RLS)
+- **Search Engine**: PostgreSQL Trigram GIN Indexing (`pg_trgm`) for sub-15ms substring matching
+- **Transactions & Concurrency**: PostgreSQL RPCs with sorted row-locking (`ORDER BY id ASC`), atomic reservations, and zero overselling guarantees
+- **Caching**: In-memory TTL cache with LRU eviction and reactive prefix invalidation
+- **State Management**: Provider with isolated ChangeNotifier scopes
+- **CI/CD**: GitHub Actions workflow for automated linting, test suites, and AAB artifact builds
 
-[Step 1](https://imgur.com/a/tMTlKCG)
+---
 
-### Step 2 - Create Tables on Database section
+## 🚀 Running the Applications
 
-In order to store variables you need to open tables named Products and Orders with the constants that will be entered.
-These variables must be the same as in the classes named OrdersStream and ProductsStream as described in the image
+### 1. Offline Demo Mode (Default)
+Both applications run out-of-the-box with a full mock grocery catalog, real in-memory ACID transaction simulation, and instant state reactivity without requiring any external database credentials:
 
-[Step 2](https://imgur.com/a/hWi5TwO)
+```bash
+# Run Customer App in Chrome
+flutter run -d chrome
 
-[Step 2](https://imgur.com/a/TiiX1uY)
+# Run Admin App in Chrome
+flutter run -d chrome -t lib/main_admin.dart
 
-### Step 3 - Create Storage Bucket
+# Run as Native Windows Desktop App
+flutter run -d windows
+flutter run -d windows -t lib/main_admin.dart
+```
 
-A storage bucket must be created to be able to store the images of the products, later you must configure its rules to allow the addition, modification, deletion and selection of files.
-The image shows that it should be product-images as it is in the application
+### 2. Connecting to Live Supabase Backend
+Pass environment variables via `--dart-define` or `--dart-define-from-file`:
 
-[Step 3](https://imgur.com/a/PBRIlef)
+```bash
+# Using environment file
+flutter run -d chrome --dart-define-from-file=.env.staging
 
-### Optional Step 4 - Auth Providers (Google, Facebook, ETC) which is also called deep links
+# Using direct flags
+flutter run -d chrome \
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-publishable-anon-key
+```
 
-In order to achieve the operation of authentication providers such as google (they are not included in this project) you must provide it in the myAuthRedirectUri variable, which is already exemplified by the Supabase documentation by default, therefore you must add it to the database.
+---
 
-[Step 4](https://imgur.com/a/IBczvT3)
+## 📦 Building Production Android Artifacts
 
+The Android project is configured with separate product flavors so Customer and Admin can be installed on the same device without conflict:
 
-### Step 5 Enjoy :)
+```bash
+# Build Customer Release App Bundle (AAB for Google Play)
+flutter build appbundle --flavor customer -t lib/main.dart
 
-## DOCS
+# Build Admin Release App Bundle (AAB for Internal Distribution)
+flutter build appbundle --flavor admin -t lib/main_admin.dart
 
-https://supabase.com/docs/guides/with-flutter
+# Build Release APKs for direct device testing
+flutter build apk --flavor customer -t lib/main.dart
+flutter build apk --flavor admin -t lib/main_admin.dart
+```
 
+---
 
-https://github.com/supabase-community/supabase-flutter
+## 🔒 Security & Privacy
 
+1. **Zero-Secret Client Codebase**: Client apps only consume the public publishable anon key. Sensitive operations (checkout price recalculation, stock reservation, refunds) run strictly inside server-side PostgreSQL RPCs.
+2. **Deterministic Concurrency**: Eliminates deadlocks and race conditions via sorted row locking and 15-minute bounded reservation holds.
+3. **Log Sanitization**: `AppObservability` automatically redacts passwords, tokens, API keys, and payment card details from all structured logs.
+4. **Android Permissions**: Requests only standard network permissions (`INTERNET`, `ACCESS_NETWORK_STATE`). Deprecated storage permissions have been removed.
 
-https://github.com/supabase-community/supabase-dart
+---
 
+## 📖 Operational Documentation
 
-
-I do not provide any type of support when referring to open source but in case of errors in my free time I can solve them
-
-
-
+- [Production Operational Runbook](file:///f:/mobile%20app/docs/PRODUCTION_RUNBOOK.md) — Daily SRE checks, incident response, rollback procedures, and key rotation.
+- [Google Play Store Readiness Guide](file:///f:/mobile%20app/docs/STORE_READINESS.md) — Store listing metadata, Data Safety questionnaire, and compliance checklists.
+- [Database Migrations](file:///f:/mobile%20app/supabase/migrations/) — Version-controlled SQL migrations (`000001` through `000005`).

@@ -1,0 +1,107 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, 'release/**' ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Job 1: Quality Gate & Automated Testing ────────────────────────────────
+  lint_and_test:
+    name: Lint Analysis & Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17 (Required for Android Gradle 8+)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Static Code Analysis (0 Errors / 0 Warnings)
+        run: flutter analyze --fatal-infos
+
+      - name: Execute Full Test Suite (Unit, Concurrency, Load, Resilience)
+        run: flutter test --coverage
+
+  # ─── Job 2: Build Android Release Artifacts ─────────────────────────────────
+  build_android:
+    name: Build Android Release App Bundles (AAB)
+    needs: lint_and_test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Setup signing key from repository secrets if configured
+      - name: Configure Keystore (Optional CI Secret)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/upload-keystore.jks
+            echo "keyAlias=$KEY_ALIAS" > android/key.properties
+            echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+            echo "storePassword=$KEYSTORE_PASSWORD" >> android/key.properties
+            echo "storeFile=../upload-keystore.jks" >> android/key.properties
+            echo "Release keystore configured successfully."
+          else
+            echo "No CI keystore secret provided. Falling back to build validation."
+          fi
+
+      - name: Build Customer App Bundle (AAB)
+        run: flutter build appbundle --flavor customer -t lib/main.dart
+
+      - name: Build Admin App Bundle (AAB)
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart
+
+      - name: Archive Customer AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-release-bundle
+          path: build/app/outputs/bundle/customerRelease/app-customer-release.aab
+          retention-days: 14
+
+      - name: Archive Admin AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-release-bundle
+          path: build/app/outputs/bundle/adminRelease/app-admin-release.aab
+          retention-days: 14

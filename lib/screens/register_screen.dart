@@ -1,41 +1,147 @@
 import 'package:flutter/material.dart';
-import 'package:opem/screens/login_screen.dart';
-import 'package:opem/supabase/functions.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:go_router/go_router.dart';
+import 'package:opem/core/router.dart';
+import 'package:opem/provider/user_provider.dart';
+import 'package:opem/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
-  TextEditingController emailET = TextEditingController();
-  TextEditingController passwordET = TextEditingController();
+  Future<void> _handleSignUp() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    EasyLoading.show(status: 'Creating account…');
+    try {
+      await authService.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        fullName: _nameController.text.trim(),
+      );
+      if (!mounted) return;
+      await context.read<UserProvider>().loadProfile();
+      if (!mounted) return;
+      context.go(Routes.home);
+    } on AuthException catch (e) {
+      EasyLoading.showError(e.message);
+    } catch (e) {
+      EasyLoading.showError('An unexpected error occurred.');
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    EasyLoading.show(status: 'Connecting to Google…');
+    try {
+      final res = await authService.signInWithGoogle();
+      if (!mounted) return;
+      if (res != null || authService.isSignedIn) {
+        await context.read<UserProvider>().loadProfile();
+        if (!mounted) return;
+        context.go(Routes.home);
+      }
+    } on AuthException catch (e) {
+      EasyLoading.showError(e.message);
+    } catch (e) {
+      EasyLoading.showError('Google sign up failed.');
+    } finally {
+      EasyLoading.dismiss();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.black,),
+      appBar: AppBar(title: const Text('Create Account')),
       body: SingleChildScrollView(
-        child: Center(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.center,mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 45,
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Full Name',
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
               ),
-              Container(width: 200,child: TextFormField(controller: emailET,)),
-              Container(width: 200,child: TextFormField(controller: passwordET,)),
-              SizedBox(height: 15,),
-              ElevatedButton(onPressed: (){
-                signUp(context,emailET.text, passwordET.text);
-              }, child: Text("Register")),
-              GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-                },
-                child:Text("Already registered?",style: TextStyle(fontSize: 9,fontWeight:FontWeight.bold),),
-              )
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) =>
+                    (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) =>
+                    (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _handleSignUp,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Register', style: TextStyle(fontSize: 16)),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _handleGoogleSignUp,
+                icon: const Icon(Icons.g_mobiledata, size: 28),
+                label: const Text('Sign up with Google', style: TextStyle(fontSize: 15)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('Already have an account? Sign in'),
+              ),
             ],
           ),
         ),

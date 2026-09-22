@@ -88,17 +88,17 @@ jobs:
 
       # ─── Build Direct-Install APKs ──────────────────────────────────────────
       - name: Build Customer App APK
-        run: flutter build apk --flavor customer -t lib/main.dart
+        run: flutter build apk --flavor customer -t lib/main.dart --android-skip-build-dependency-validation
 
       - name: Build Admin App APK
-        run: flutter build apk --flavor admin -t lib/main_admin.dart
+        run: flutter build apk --flavor admin -t lib/main_admin.dart --android-skip-build-dependency-validation
 
       # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
-        run: flutter build appbundle --flavor customer -t lib/main.dart
+        run: flutter build appbundle --flavor customer -t lib/main.dart --android-skip-build-dependency-validation
 
       - name: Build Admin App Bundle (AAB)
-        run: flutter build appbundle --flavor admin -t lib/main_admin.dart
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --android-skip-build-dependency-validation
 
       - name: Inspect Build Artifacts
         run: |

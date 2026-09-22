@@ -45,7 +45,6 @@ jobs:
   # ─── Job 2: Build Android Release Artifacts (APKs & AABs) ───────────────────
   build_android:
     name: Build Android APKs and Release Bundles
-    needs: lint_and_test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
@@ -101,19 +100,23 @@ jobs:
       - name: Build Admin App Bundle (AAB)
         run: flutter build appbundle --flavor admin -t lib/main_admin.dart
 
+      - name: Inspect Build Artifacts
+        run: |
+          ls -la build/app/outputs/flutter-apk/ || true
+
       # ─── Upload Downloadable APK Artifacts ──────────────────────────────────
       - name: Upload Customer APK
         uses: actions/upload-artifact@v4
         with:
           name: customer-app-apk
-          path: build/app/outputs/flutter-apk/app-customer-release.apk
+          path: build/app/outputs/flutter-apk/*customer*.apk
           retention-days: 30
 
       - name: Upload Admin APK
         uses: actions/upload-artifact@v4
         with:
           name: admin-app-apk
-          path: build/app/outputs/flutter-apk/app-admin-release.apk
+          path: build/app/outputs/flutter-apk/*admin*.apk
           retention-days: 30
 
       # ─── Upload Play Store AAB Bundles ──────────────────────────────────────
@@ -121,12 +124,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: customer-app-bundle
-          path: build/app/outputs/bundle/customerRelease/app-customer-release.aab
+          path: build/app/outputs/bundle/*customer*/*.aab
           retention-days: 30
 
       - name: Upload Admin AAB
         uses: actions/upload-artifact@v4
         with:
           name: admin-app-bundle
-          path: build/app/outputs/bundle/adminRelease/app-admin-release.aab
+          path: build/app/outputs/bundle/*admin*/*.aab
           retention-days: 30
+

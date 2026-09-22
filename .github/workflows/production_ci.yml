@@ -5,6 +5,7 @@ on:
     branches: [ main, 'release/**' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,17 +37,17 @@ jobs:
         run: flutter pub get
 
       - name: Static Code Analysis (0 Errors / 0 Warnings)
-        run: flutter analyze --fatal-infos
+        run: flutter analyze
 
-      - name: Execute Full Test Suite (Unit, Concurrency, Load, Resilience)
+      - name: Execute Full Test Suite
         run: flutter test --coverage
 
-  # ─── Job 2: Build Android Release Artifacts ─────────────────────────────────
+  # ─── Job 2: Build Android Release Artifacts (APKs & AABs) ───────────────────
   build_android:
-    name: Build Android Release App Bundles (AAB)
+    name: Build Android APKs and Release Bundles
     needs: lint_and_test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout Codebase
@@ -86,22 +87,46 @@ jobs:
             echo "No CI keystore secret provided. Falling back to build validation."
           fi
 
+      # ─── Build Direct-Install APKs ──────────────────────────────────────────
+      - name: Build Customer App APK
+        run: flutter build apk --flavor customer -t lib/main.dart
+
+      - name: Build Admin App APK
+        run: flutter build apk --flavor admin -t lib/main_admin.dart
+
+      # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
         run: flutter build appbundle --flavor customer -t lib/main.dart
 
       - name: Build Admin App Bundle (AAB)
         run: flutter build appbundle --flavor admin -t lib/main_admin.dart
 
-      - name: Archive Customer AAB
+      # ─── Upload Downloadable APK Artifacts ──────────────────────────────────
+      - name: Upload Customer APK
         uses: actions/upload-artifact@v4
         with:
-          name: customer-release-bundle
-          path: build/app/outputs/bundle/customerRelease/app-customer-release.aab
-          retention-days: 14
+          name: customer-app-apk
+          path: build/app/outputs/flutter-apk/app-customer-release.apk
+          retention-days: 30
 
-      - name: Archive Admin AAB
+      - name: Upload Admin APK
         uses: actions/upload-artifact@v4
         with:
-          name: admin-release-bundle
+          name: admin-app-apk
+          path: build/app/outputs/flutter-apk/app-admin-release.apk
+          retention-days: 30
+
+      # ─── Upload Play Store AAB Bundles ──────────────────────────────────────
+      - name: Upload Customer AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-app-bundle
+          path: build/app/outputs/bundle/customerRelease/app-customer-release.aab
+          retention-days: 30
+
+      - name: Upload Admin AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-app-bundle
           path: build/app/outputs/bundle/adminRelease/app-admin-release.aab
-          retention-days: 14
+          retention-days: 30

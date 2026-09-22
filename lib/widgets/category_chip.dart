@@ -1,8 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:opem/core/theme.dart';
+import 'package:opem/core/design_tokens.dart';
 import 'package:opem/models/category.dart';
+import 'package:opem/widgets/ui/pressable_scale.dart';
 
+/// Modern Squircle Category Chip with subtle pastel accents, smooth transitions,
+/// and tactile press scaling.
 class CategoryChipWidget extends StatelessWidget {
   final Category? category;
   final String label;
@@ -19,35 +22,32 @@ class CategoryChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
+      scaleFactor: 0.95,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        margin: const EdgeInsets.only(right: 8),
+        duration: AppMotion.fast,
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        margin: const EdgeInsets.only(right: AppSpacing.sm),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          color: isSelected ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.full),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
-            width: 1,
+            width: 1.2,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+          boxShadow: isSelected ? AppShadows.subtle : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (category != null && category!.imageUrl.isNotEmpty) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.full),
                 child: CachedNetworkImage(
                   imageUrl: category!.imageUrl,
                   width: 20,
@@ -60,14 +60,15 @@ class CategoryChipWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.xs + 2),
             ],
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected ? Colors.white : AppColors.textPrimary,
+                letterSpacing: -0.1,
               ),
             ),
           ],

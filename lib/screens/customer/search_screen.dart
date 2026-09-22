@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:opem/core/theme.dart';
+import 'package:opem/core/design_tokens.dart';
 import 'package:opem/models/product.dart';
 import 'package:opem/services/product_service.dart';
 import 'package:opem/widgets/product_card.dart';
+import 'package:opem/widgets/ui/empty_state_view.dart';
+import 'package:opem/widgets/ui/floating_cart_bar.dart';
+import 'package:opem/widgets/ui/pressable_scale.dart';
+import 'package:opem/widgets/ui/shimmer_loading.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -78,26 +82,33 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         titleSpacing: 0,
+        backgroundColor: AppColors.surface,
+        elevation: 0,
         title: Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: AppSpacing.md),
           child: Container(
             height: 44,
             decoration: BoxDecoration(
               color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.full),
               border: Border.all(color: AppColors.border),
             ),
             child: TextField(
               controller: _searchController,
               autofocus: true,
               onChanged: _onSearchChanged,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
               decoration: InputDecoration(
                 hintText: 'Search fresh groceries…',
                 hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
+                        icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           _onSearchChanged('');
@@ -105,89 +116,132 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     : null,
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
               ),
             ),
           ),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          // ─── Suggested Keywords ───────────────────────────────────────────
-          if (!_hasSearched) ...[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                'Popular Searches',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ─── Suggested Keywords ───────────────────────────────────────────
+              if (!_hasSearched) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Text(
+                    'Trending Searches',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _suggestedTags.map((tag) {
-                  return ActionChip(
-                    label: Text(tag, style: const TextStyle(fontSize: 12)),
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: AppColors.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    onPressed: () {
-                      _searchController.text = tag;
-                      _performSearch(tag);
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: _suggestedTags.map((tag) {
+                      return PressableScale(
+                        onTap: () {
+                          _searchController.text = tag;
+                          _performSearch(tag);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppRadius.full),
+                            border: Border.all(color: AppColors.border),
+                            boxShadow: AppShadows.subtle,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.trending_up_rounded,
+                                size: 14,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(
+                                tag,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
 
-          // ─── Results View ─────────────────────────────────────────────────
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _hasSearched
-                    ? _results.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.search_off_outlined, size: 56, color: AppColors.textMuted),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'No groceries found for "${_searchController.text}"',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
+              // ─── Results View ─────────────────────────────────────────────────
+              Expanded(
+                child: _isLoading
+                    ? GridView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.64,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.md,
+                        ),
+                        itemCount: 4,
+                        itemBuilder: (context, index) => const ProductCardSkeleton(),
+                      )
+                    : _hasSearched
+                        ? _results.isEmpty
+                            ? EmptyStateView(
+                                icon: Icons.search_off_rounded,
+                                title: 'No groceries found',
+                                message: 'We couldn\'t find anything matching "${_searchController.text}". Try searching for bread, milk, or fresh produce.',
+                              )
+                            : GridView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                  AppSpacing.md,
+                                  AppSpacing.md,
+                                  AppSpacing.md,
+                                  80, // Space for floating cart
                                 ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Try searching for milk, bread, fruits, or eggs',
-                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.64,
+                                  crossAxisSpacing: AppSpacing.md,
+                                  mainAxisSpacing: AppSpacing.md,
                                 ),
-                              ],
-                            ),
-                          )
-                        : GridView.builder(
-                            padding: const EdgeInsets.all(16),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.68,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                            ),
-                            itemCount: _results.length,
-                            itemBuilder: (context, index) => ProductCard(product: _results[index]),
-                          )
-                    : const SizedBox.shrink(),
+                                itemCount: _results.length,
+                                itemBuilder: (context, index) => ProductCard(product: _results[index]),
+                              )
+                        : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+
+          // Floating Cart Bar
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FloatingCartBar(),
           ),
         ],
       ),

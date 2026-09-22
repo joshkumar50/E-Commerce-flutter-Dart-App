@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:opem/core/design_tokens.dart';
 import 'package:opem/core/router.dart';
-import 'package:opem/core/theme.dart';
 import 'package:opem/provider/user_provider.dart';
 import 'package:opem/services/auth_service.dart';
-import 'package:provider/provider.dart';
+import 'package:opem/widgets/ui/pressable_scale.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,31 +19,39 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(
+        title: const Text(
+          'My Profile',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        ),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           // ─── Profile Header Card ──────────────────────────────────────────
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: AppShadows.card,
             ),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: AppColors.primaryLight,
+                  backgroundColor: AppColors.primarySoft,
                   backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
                       ? NetworkImage(avatarUrl)
                       : null,
                   child: (avatarUrl == null || avatarUrl.isEmpty)
-                      ? const Icon(Icons.person, size: 36, color: AppColors.primary)
+                      ? const Icon(Icons.person_rounded, size: 36, color: AppColors.primary)
                       : null,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,36 +62,45 @@ class ProfileScreen extends StatelessWidget {
                             child: Text(
                               name,
                               style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
+                                letterSpacing: -0.3,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: AppSpacing.xs + 2),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xs + 2,
+                              vertical: AppSpacing.xxs,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(4),
+                              color: AppColors.primarySoft,
+                              borderRadius: BorderRadius.circular(AppRadius.xs),
                             ),
                             child: const Text(
                               'CUSTOMER',
                               style: TextStyle(
                                 color: AppColors.primaryDark,
                                 fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xxs),
                       Text(
                         email,
-                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -93,19 +111,20 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
 
           // ─── Menu Options ─────────────────────────────────────────────────
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: AppShadows.subtle,
             ),
             child: Column(
               children: [
                 _ProfileMenuItem(
-                  icon: Icons.receipt_long_outlined,
+                  icon: Icons.receipt_long_rounded,
                   title: 'My Orders',
                   subtitle: 'Track order status and purchase history',
                   onTap: () => context.push(Routes.orders),
@@ -119,34 +138,23 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
-                  icon: Icons.favorite_border,
+                  icon: Icons.favorite_border_rounded,
                   title: 'My Wishlist',
-                  subtitle: 'Saved organic groceries',
+                  subtitle: 'Saved organic groceries and favorites',
                   onTap: () => context.push(Routes.wishlist),
                 ),
                 const Divider(height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
-                  icon: Icons.notifications_none,
-                  title: 'Notifications',
-                  subtitle: 'Store offers and updates',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notifications coming in future release')),
-                    );
-                  },
-                ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
-                _ProfileMenuItem(
-                  icon: Icons.help_outline,
+                  icon: Icons.help_outline_rounded,
                   title: 'Help & Customer Care',
-                  subtitle: 'FAQs and support contact',
+                  subtitle: 'Instant support & FAQs',
                   onTap: () {
                     showAboutDialog(
                       context: context,
-                      applicationName: 'B-Buys Grocery',
-                      applicationVersion: 'v1.0.0 (Phase 3)',
+                      applicationName: 'B-Buys Fresh Grocery',
+                      applicationVersion: 'v2.0 (Premium)',
                       children: const [
-                        Text('B-Buys Grocery provides fresh, organic produce delivered to your doorstep.'),
+                        Text('B-Buys Grocery delivers high-quality, farm-fresh produce and daily essentials.'),
                       ],
                     );
                   },
@@ -155,42 +163,56 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.lg),
 
           // ─── Sign Out ─────────────────────────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.saleRedLight,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.logout, color: AppColors.saleRed, size: 20),
+          PressableScale(
+            onTap: () async {
+              await authService.signOut();
+              if (context.mounted) {
+                context.read<UserProvider>().reset();
+                context.go(Routes.login);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.md,
               ),
-              title: const Text(
-                'Sign Out',
-                style: TextStyle(
-                  color: AppColors.saleRed,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.borderLight),
+                boxShadow: AppShadows.subtle,
               ),
-              onTap: () async {
-                await authService.signOut();
-                if (context.mounted) {
-                  context.read<UserProvider>().reset();
-                  context.go(Routes.login);
-                }
-              },
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.saleRedSoft,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.saleRed,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  const Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: AppColors.saleRed,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
@@ -214,22 +236,30 @@ class _ProfileMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: AppColors.primarySoft,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Icon(icon, color: AppColors.primary, size: 20),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textPrimary),
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+          color: AppColors.textPrimary,
+        ),
       ),
       subtitle: Text(
         subtitle,
         style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
       ),
-      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        size: 20,
+        color: AppColors.textMuted,
+      ),
       onTap: onTap,
     );
   }

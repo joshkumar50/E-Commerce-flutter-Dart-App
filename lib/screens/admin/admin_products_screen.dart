@@ -468,7 +468,7 @@ class _AdminProductCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            '\$${product.effectivePrice.toStringAsFixed(2)}',
+                            '₹${product.effectivePrice.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -478,7 +478,7 @@ class _AdminProductCard extends StatelessWidget {
                           if (hasDiscount) ...[
                             const SizedBox(width: 6),
                             Text(
-                              '\$${product.price.toStringAsFixed(2)}',
+                              '₹${product.price.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 decoration: TextDecoration.lineThrough,

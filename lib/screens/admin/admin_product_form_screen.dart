@@ -604,8 +604,8 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                             controller: _priceController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
-                              labelText: 'Price (\$) *',
-                              prefixIcon: Icon(Icons.attach_money),
+                              labelText: 'Price (₹) *',
+                              prefixIcon: Icon(Icons.currency_rupee_rounded),
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
@@ -625,7 +625,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                             controller: _salePriceController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
-                              labelText: 'Sale Price (\$) (Opt)',
+                              labelText: 'Sale Price (₹) (Opt)',
                               prefixIcon: Icon(Icons.local_offer_outlined),
                             ),
                             validator: (val) {

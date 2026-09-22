@@ -14,11 +14,17 @@ class CartProvider extends ChangeNotifier {
   /// Total count of individual units in cart
   int get totalQuantity => _items.fold(0, (sum, item) => sum + item.quantity);
 
+  /// Convenience alias for totalQuantity
+  int get itemCount => totalQuantity;
+
   /// Count of unique distinct products in cart
   int get uniqueItemCount => _items.length;
 
   /// Total price of all items in cart
   double get totalAmount => _items.fold(0.0, (sum, item) => sum + item.subtotal);
+
+  /// Convenience alias for totalAmount
+  double get totalPrice => totalAmount;
 
   CartProvider() {
     loadCart();

@@ -1,33 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'design_tokens.dart';
+
+export 'design_tokens.dart';
 
 /// Centralized Design System and Theme for B-Buys Grocery Platform.
-class AppColors {
-  // Brand / Primary Green Palette
-  static const Color primary = Color(0xFF059669); // Emerald 600
-  static const Color primaryDark = Color(0xFF047857); // Emerald 700
-  static const Color primaryLight = Color(0xFFD1FAE5); // Emerald 100
-  static const Color primarySoft = Color(0xFFECFDF5); // Emerald 50
-
-  // Accent / Sale & Offer Badges
-  static const Color accent = Color(0xFFF59E0B); // Amber 500
-  static const Color accentLight = Color(0xFFFEF3C7); // Amber 100
-  static const Color saleRed = Color(0xFFEF4444); // Red 500
-  static const Color saleRedLight = Color(0xFFFEE2E2); // Red 100
-
-  // Neutral Background & Surface
-  static const Color background = Color(0xFFF8FAFC); // Slate 50
-  static const Color surface = Colors.white;
-  static const Color surfaceMuted = Color(0xFFF1F5F9); // Slate 100
-  static const Color border = Color(0xFFE2E8F0); // Slate 200
-  static const Color borderLight = Color(0xFFF1F5F9); // Slate 100
-
-  // Text Hierarchy
-  static const Color textPrimary = Color(0xFF0F172A); // Slate 900
-  static const Color textSecondary = Color(0xFF64748B); // Slate 500
-  static const Color textMuted = Color(0xFF94A3B8); // Slate 400
-}
-
 class AppTheme {
   static ThemeData get lightTheme {
     final textTheme = GoogleFonts.interTextTheme();
@@ -41,6 +18,7 @@ class AppTheme {
         primaryContainer: AppColors.primaryLight,
         onPrimaryContainer: AppColors.primaryDark,
         secondary: AppColors.accent,
+        onSecondary: Colors.white,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
         error: AppColors.saleRed,
@@ -48,22 +26,23 @@ class AppTheme {
       textTheme: textTheme.copyWith(
         headlineLarge: textTheme.headlineLarge?.copyWith(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.8,
         ),
         headlineMedium: textTheme.headlineMedium?.copyWith(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
         ),
         headlineSmall: textTheme.headlineSmall?.copyWith(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           letterSpacing: -0.3,
         ),
         titleLarge: textTheme.titleLarge?.copyWith(
           color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
         ),
         titleMedium: textTheme.titleMedium?.copyWith(
           color: AppColors.textPrimary,
@@ -71,35 +50,47 @@ class AppTheme {
         ),
         titleSmall: textTheme.titleSmall?.copyWith(
           color: AppColors.textSecondary,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
         bodyLarge: textTheme.bodyLarge?.copyWith(
           color: AppColors.textPrimary,
+          fontSize: 15,
+          height: 1.4,
         ),
         bodyMedium: textTheme.bodyMedium?.copyWith(
           color: AppColors.textSecondary,
+          fontSize: 13,
+          height: 1.35,
         ),
         bodySmall: textTheme.bodySmall?.copyWith(
           color: AppColors.textMuted,
+          fontSize: 11,
+        ),
+        labelLarge: textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
         ),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 0.5,
         centerTitle: false,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 18,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
         ),
+        iconTheme: IconThemeData(color: AppColors.textPrimary, size: 22),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.r16,
           side: const BorderSide(color: AppColors.border, width: 1),
         ),
       ),
@@ -108,36 +99,100 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.r12,
           ),
           textStyle: const TextStyle(
             fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.r12,
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
             fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceMuted,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.r12,
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.r12,
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.r12,
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppRadius.r12,
+          borderSide: const BorderSide(color: AppColors.saleRed, width: 1),
         ),
         hintStyle: const TextStyle(
           color: AppColors.textMuted,
           fontSize: 14,
         ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.r20,
+        ),
+        titleTextStyle: const TextStyle(
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      badgeTheme: const BadgeThemeData(
+        backgroundColor: AppColors.primary,
+        textColor: Colors.white,
+        smallSize: 8,
+        largeSize: 18,
+        textStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.borderLight,
+        thickness: 1,
+        space: 1,
       ),
     );
   }

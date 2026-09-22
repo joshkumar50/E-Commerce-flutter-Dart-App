@@ -1,14 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:opem/core/design_tokens.dart';
 import 'package:opem/core/router.dart';
-import 'package:opem/core/theme.dart';
 import 'package:opem/models/product.dart';
 import 'package:opem/provider/cart_provider.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/wishlist_service.dart';
-import 'package:provider/provider.dart';
+import 'package:opem/widgets/ui/animated_quantity_stepper.dart';
+import 'package:opem/widgets/ui/pressable_scale.dart';
+import 'package:opem/widgets/ui/shimmer_loading.dart';
 
+/// Modern Grocery Product Card with tactile press feedback, smooth
+/// image loading placeholders, out-of-stock badges, and Zepto/Blinkit-style
+/// animated quantity steppers.
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onTap;
@@ -37,11 +44,15 @@ class _ProductCardState extends State<ProductCard> {
     final uid = authService.currentUserId;
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to save favorites')),
+        const SnackBar(
+          content: Text('Please sign in to save favorites'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
+    HapticFeedback.lightImpact();
     setState(() {
       _isLoadingFavorite = true;
       _isFavorite = !_isFavorite;
@@ -73,91 +84,120 @@ class _ProductCardState extends State<ProductCard> {
       discountPct = (((widget.product.price - widget.product.salePrice!) / widget.product.price) * 100).round();
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: widget.onTap ?? () => context.push(Routes.productDetail, extra: widget.product),
+    final isOutOfStock = widget.product.stockQuantity <= 0;
+
+    return PressableScale(
+      onTap: widget.onTap ?? () => context.push(Routes.productDetail, extra: widget.product),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.borderLight, width: 1),
+          boxShadow: AppShadows.card,
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ─── Image Container with Badges ─────────────────────────────────
             Stack(
               children: [
-                Container(
-                  height: 125,
-                  width: double.infinity,
-                  color: AppColors.surfaceMuted,
-                  child: widget.product.imageUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: widget.product.imageUrl,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 350,
-                          memCacheHeight: 350,
-                          placeholder: (_, __) => const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                AspectRatio(
+                  aspectRatio: 1.15,
+                  child: Container(
+                    color: AppColors.surfaceMuted,
+                    child: widget.product.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: widget.product.imageUrl,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 350,
+                            memCacheHeight: 350,
+                            placeholder: (_, __) => const ShimmerLoading(
+                              child: ColoredBox(color: Colors.white),
+                            ),
+                            errorWidget: (_, __, ___) => const Center(
+                              child: Icon(
+                                Icons.local_grocery_store_outlined,
+                                color: AppColors.textMuted,
+                                size: 36,
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.local_grocery_store_outlined,
+                              color: AppColors.textMuted,
+                              size: 36,
                             ),
                           ),
-                          errorWidget: (_, __, ___) => const Center(
-                            child: Icon(Icons.local_grocery_store_outlined, color: AppColors.textMuted, size: 36),
-                          ),
-                        )
-                      : const Center(
-                          child: Icon(Icons.local_grocery_store_outlined, color: AppColors.textMuted, size: 36),
-                        ),
+                  ),
                 ),
                 // Discount Badge
                 if (discountPct > 0)
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: AppSpacing.sm,
+                    left: AppSpacing.sm,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs + 2,
+                        vertical: AppSpacing.xxs,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.saleRed,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        boxShadow: AppShadows.subtle,
                       ),
                       child: Text(
                         '$discountPct% OFF',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
                   ),
-                // Favorite Heart Button
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Material(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: _isLoadingFavorite ? null : _toggleFavorite,
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          size: 18,
-                          color: _isFavorite ? AppColors.saleRed : AppColors.textSecondary,
+                // Out of stock overlay badge
+                if (isOutOfStock)
+                  Positioned(
+                    bottom: AppSpacing.sm,
+                    left: AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                      ),
+                      child: const Text(
+                        'Out of Stock',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
                         ),
+                      ),
+                    ),
+                  ),
+                // Favorite Button
+                Positioned(
+                  top: AppSpacing.xs,
+                  right: AppSpacing.xs,
+                  child: PressableScale(
+                    onTap: _isLoadingFavorite ? null : _toggleFavorite,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.xs + 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.subtle,
+                      ),
+                      child: Icon(
+                        _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        size: 16,
+                        color: _isFavorite ? AppColors.saleRed : AppColors.textMuted,
                       ),
                     ),
                   ),
@@ -168,11 +208,11 @@ class _ProductCardState extends State<ProductCard> {
             // ─── Content ─────────────────────────────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(AppSpacing.sm + 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Unit Badge
+                    // Unit Tag
                     Text(
                       widget.product.unit,
                       style: const TextStyle(
@@ -183,7 +223,7 @@ class _ProductCardState extends State<ProductCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: AppSpacing.xxs),
                     // Product Title
                     Text(
                       widget.product.name,
@@ -191,118 +231,84 @@ class _ProductCardState extends State<ProductCard> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
-                        height: 1.2,
+                        height: 1.25,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
 
-                    // ─── Price & Add Button Row ──────────────────────────────
+                    // ─── Price & Stepper Row ─────────────────────────────────
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         // Price Column
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (widget.product.hasDiscount)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (widget.product.hasDiscount)
+                                Text(
+                                  AppCurrency.format(widget.product.price),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textMuted,
+                                    decoration: TextDecoration.lineThrough,
+                                    height: 1.1,
+                                  ),
+                                ),
                               Text(
-                                '\$${widget.product.price.toStringAsFixed(2)}',
+                                AppCurrency.format(widget.product.effectivePrice),
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textMuted,
-                                  decoration: TextDecoration.lineThrough,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: -0.2,
+                                  height: 1.1,
                                 ),
                               ),
-                            Text(
-                              '\$${widget.product.effectivePrice.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
 
-                        // Stepper or Add Button
-                        if (inCartQuantity > 0)
+                        // Animated Stepper or Disabled Button
+                        if (isOutOfStock)
                           Container(
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: AppSpacing.xs,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    if (cartItem != null) {
-                                      cart.updateQuantity(cartItem.id, inCartQuantity - 1);
-                                    }
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                    child: Icon(Icons.remove, color: Colors.white, size: 16),
-                                  ),
-                                ),
-                                Text(
-                                  '$inCartQuantity',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    if (cartItem != null) {
-                                      cart.updateQuantity(cartItem.id, inCartQuantity + 1);
-                                    }
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                    child: Icon(Icons.add, color: Colors.white, size: 16),
-                                  ),
-                                ),
-                              ],
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceMuted,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                            ),
+                            child: const Text(
+                              'Sold Out',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textMuted,
+                              ),
                             ),
                           )
                         else
-                          SizedBox(
-                            height: 32,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                cart.addToCart(widget.product.id, quantity: 1);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primarySoft,
-                                foregroundColor: AppColors.primary,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: const BorderSide(color: AppColors.primary, width: 1),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.add, size: 16),
-                                  SizedBox(width: 2),
-                                  Text(
-                                    'Add',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          AnimatedQuantityStepper(
+                            quantity: inCartQuantity,
+                            maxStock: widget.product.stockQuantity,
+                            onAdd: () {
+                              cart.addToCart(widget.product.id, quantity: 1);
+                            },
+                            onIncrement: () {
+                              if (cartItem != null) {
+                                cart.updateQuantity(cartItem.id, inCartQuantity + 1);
+                              }
+                            },
+                            onDecrement: () {
+                              if (cartItem != null) {
+                                cart.updateQuantity(cartItem.id, inCartQuantity - 1);
+                              }
+                            },
                           ),
                       ],
                     ),

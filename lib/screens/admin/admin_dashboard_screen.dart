@@ -498,7 +498,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text(
-                                'Unit: ${prod.unit} • Price: \$${prod.effectivePrice.toStringAsFixed(2)}',
+                                'Unit: ${prod.unit} • Price: ₹${prod.effectivePrice.toStringAsFixed(2)}',
                                 style: const TextStyle(fontSize: 12),
                               ),
                               trailing: Row(

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../utils/constants.dart';
 import '../utils/observability.dart';
+import 'checkout_service.dart';
 
 /// Abuse / Fraud Risk Signal Model
 class AbuseRiskSignal {
@@ -76,7 +77,9 @@ class DataHealthService {
 
   /// Trigger inventory reservation expiration sweeper
   Future<int> sweepExpiredReservations() async {
-    if (isDemoMode) return 0;
+    if (isDemoMode) {
+      return await checkoutService.sweepExpiredReservations();
+    }
     try {
       final response = await Supabase.instance.client.rpc('rpc_expire_reservations');
       return response is int ? response : (int.tryParse(response.toString()) ?? 0);

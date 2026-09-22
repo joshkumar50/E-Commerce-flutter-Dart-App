@@ -21,6 +21,7 @@ class DemoTransactionService {
   final List<PaymentRecord> _payments = [];
   final List<RefundRecord> _refunds = [];
   final Map<String, Map<String, dynamic>> _idempotencyKeys = {};
+  final Map<String, Map<String, dynamic>> _paymentEvents = {};
 
   final StreamController<List<OrderV2>> _ordersStreamController =
       StreamController<List<OrderV2>>.broadcast();
@@ -662,5 +663,139 @@ class DemoTransactionService {
     });
 
     return stockAfter;
+  }
+
+  /// High-fidelity webhook processing with deduplication check
+  Future<Map<String, dynamic>> processPaymentWebhook({
+    required String providerEventId,
+    required String eventType,
+    required String orderId,
+    required String providerPaymentId,
+    Map<String, dynamic>? payload,
+  }) async {
+    // 1. Deduplication check
+    if (_paymentEvents.containsKey(providerEventId)) {
+      return {
+        'success': true,
+        'duplicate': true,
+        'message': 'Webhook event already processed (idempotent replay)',
+        'provider_event_id': providerEventId,
+      };
+    }
+
+    _paymentEvents[providerEventId] = {
+      'event_id': _uuid.v4(),
+      'event_type': eventType,
+      'order_id': orderId,
+      'provider_payment_id': providerPaymentId,
+      'payload': payload ?? {},
+      'processed_at': DateTime.now(),
+    };
+
+    if (eventType == 'payment.captured' || eventType == 'order.paid') {
+      final index = _orders.indexWhere((o) => o.id == orderId);
+      if (index == -1) {
+        return {
+          'success': false,
+          'message': 'Order not found for webhook event',
+          'order_id': orderId,
+        };
+      }
+
+      final order = _orders[index];
+      if (order.status == OrderStatus.confirmed || order.status == OrderStatus.completed) {
+        return {
+          'success': true,
+          'duplicate': false,
+          'message': 'Order already paid and confirmed',
+          'order_id': orderId,
+          'status': order.status.value,
+        };
+      }
+
+      // Update payment
+      final pIndex = _payments.indexWhere((p) => p.orderId == orderId);
+      if (pIndex != -1) {
+        _payments[pIndex] = PaymentRecord(
+          id: _payments[pIndex].id,
+          orderId: orderId,
+          provider: 'razorpay',
+          providerOrderId: _payments[pIndex].providerOrderId,
+          providerPaymentId: providerPaymentId,
+          amount: _payments[pIndex].amount,
+          currency: _payments[pIndex].currency,
+          status: PaymentStatus.captured,
+          method: 'webhook',
+          signatureVerified: true,
+          createdAt: _payments[pIndex].createdAt,
+          updatedAt: DateTime.now(),
+        );
+      }
+
+      // Consume reservations
+      for (var i = 0; i < _reservations.length; i++) {
+        if (_reservations[i]['order_id'] == orderId && _reservations[i]['status'] == 'reserved') {
+          _reservations[i]['status'] = 'consumed';
+          _inventoryLedger.add({
+            'id': _uuid.v4(),
+            'product_id': _reservations[i]['product_id'],
+            'order_id': orderId,
+            'reservation_id': _reservations[i]['id'],
+            'change_type': 'purchase_committed',
+            'quantity_change': 0,
+            'reason': 'Webhook payment verified. Inventory consumption confirmed.',
+            'created_at': DateTime.now(),
+          });
+        }
+      }
+
+      // Transition order
+      _orders[index] = order.copyWith(
+        status: OrderStatus.confirmed,
+        paymentStatus: PaymentStatus.captured,
+        updatedAt: DateTime.now(),
+      );
+
+      _ordersStreamController.add(List.unmodifiable(_orders));
+      return {
+        'success': true,
+        'duplicate': false,
+        'order_id': orderId,
+        'status': 'confirmed',
+        'provider_event_id': providerEventId,
+      };
+    } else if (eventType == 'payment.failed') {
+      await handlePaymentFailure(orderId: orderId, reason: 'Payment failed via webhook');
+      return {
+        'success': true,
+        'duplicate': false,
+        'order_id': orderId,
+        'status': 'payment_failed',
+      };
+    }
+
+    return {
+      'success': true,
+      'duplicate': false,
+      'message': 'Webhook event logged',
+    };
+  }
+
+  /// System data consistency and health check
+  Future<Map<String, dynamic>> reconcileSystemData() async {
+    final cleanedReservations = await expireReservations();
+    int negativeStock = 0;
+    for (final p in DemoDataService.products) {
+      if (p.stockQuantity < 0) negativeStock++;
+    }
+
+    return {
+      'success': true,
+      'reconciled_at': DateTime.now().toIso8601String(),
+      'expired_reservations_cleaned': cleanedReservations,
+      'stuck_payments_failed': 0,
+      'negative_stock_anomalies': negativeStock,
+      'dead_letter_outbox_count': 0,
+    };
   }
 }

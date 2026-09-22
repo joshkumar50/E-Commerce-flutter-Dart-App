@@ -122,6 +122,56 @@ class CheckoutService {
     }
     return 0;
   }
+
+  /// Processes server-side or incoming payment webhook with deduplication protection.
+  Future<Map<String, dynamic>> processPaymentWebhook({
+    required String providerEventId,
+    required String eventType,
+    required String orderId,
+    required String providerPaymentId,
+    Map<String, dynamic>? payload,
+  }) async {
+    if (isDemoMode) {
+      return await DemoTransactionService.instance.processPaymentWebhook(
+        providerEventId: providerEventId,
+        eventType: eventType,
+        orderId: orderId,
+        providerPaymentId: providerPaymentId,
+        payload: payload,
+      );
+    }
+
+    final response = await Supabase.instance.client.rpc(
+      'rpc_process_payment_webhook',
+      params: {
+        'p_provider_event_id': providerEventId,
+        'p_event_type': eventType,
+        'p_order_id': orderId,
+        'p_provider_payment_id': providerPaymentId,
+        'p_payload': payload ?? {},
+      },
+    );
+
+    if (response is Map<String, dynamic>) {
+      return response;
+    } else {
+      throw Exception('Failed to process payment webhook');
+    }
+  }
+
+  /// Triggers automated system data reconciliation and health check.
+  Future<Map<String, dynamic>> reconcileSystemData() async {
+    if (isDemoMode) {
+      return await DemoTransactionService.instance.reconcileSystemData();
+    }
+
+    final response = await Supabase.instance.client.rpc('rpc_reconcile_system_data');
+    if (response is Map<String, dynamic>) {
+      return response;
+    } else {
+      throw Exception('Failed to execute system reconciliation');
+    }
+  }
 }
 
 final checkoutService = CheckoutService();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/admin_audit_log.dart';
+import '../services/auth_service.dart';
 import '../utils/constants.dart';
 import '../utils/observability.dart';
 
@@ -28,8 +29,8 @@ class AuditService {
     final reqId = requestId ?? AppObservability.newRequestId();
 
     final log = AdminAuditLog(
-      actorId: !isDemoMode ? Supabase.instance.client.auth.currentUser?.id : 'demo-admin-id',
-      actorEmail: !isDemoMode ? Supabase.instance.client.auth.currentUser?.email : 'admin@bbuys.com',
+      actorId: authService.currentUserId ?? 'system',
+      actorEmail: authService.currentUserEmail ?? 'system@bbuys.com',
       action: action,
       entityType: entityType,
       entityId: entityId,

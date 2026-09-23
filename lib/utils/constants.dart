@@ -1,7 +1,5 @@
 library;
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 /// Global constants and environment configuration.
 /// Defaults to configured live Supabase cloud instance.
 
@@ -37,16 +35,9 @@ const String googleIosClientId = String.fromEnvironment(
   defaultValue: '',
 );
 
-/// True only during headless unit tests where Supabase has not been initialized.
-/// In app runtime, Supabase is initialized at boot and isDemoMode is strictly false.
-bool get isDemoMode {
-  try {
-    Supabase.instance;
-    return false;
-  } catch (_) {
-    return true;
-  }
-}
+/// Mock and Demo mode are permanently disabled.
+/// All data queries, inserts, streams, and operations run 100% online through Supabase.
+const bool isDemoMode = false;
 
 
 // Normalized Database Table Names

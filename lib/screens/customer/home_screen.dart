@@ -3,10 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:opem/core/design_tokens.dart';
 import 'package:opem/core/router.dart';
+import 'package:opem/models/address.dart';
 import 'package:opem/models/category.dart';
 import 'package:opem/models/product.dart';
 import 'package:opem/provider/cart_provider.dart';
 import 'package:opem/provider/user_provider.dart';
+import 'package:opem/services/address_service.dart';
 import 'package:opem/services/analytics_service.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/category_service.dart';
@@ -114,17 +116,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ],
                                       ),
-                                      Text(
-                                        user.name.isNotEmpty
-                                            ? '${user.name.split(' ').first} • Home, Bengaluru'
-                                            : 'Deliver to Home, Bengaluru',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      StreamBuilder<List<Address>>(
+                                        stream: user.id != null
+                                            ? addressService.watchAddresses(user.id!)
+                                            : const Stream.empty(),
+                                        builder: (context, addrSnap) {
+                                          final addresses = addrSnap.data ?? [];
+                                          final defaultAddr = addresses.where((a) => a.isDefault).firstOrNull ??
+                                              addresses.firstOrNull;
+
+                                          final locationTitle = defaultAddr != null
+                                              ? '${user.name.isNotEmpty ? "${user.name.split(' ').first} • " : ""}${defaultAddr.label.isNotEmpty ? defaultAddr.label : defaultAddr.addressLine1}'
+                                              : (user.name.isNotEmpty
+                                                  ? '${user.name.split(' ').first} • Add Address'
+                                                  : 'Select Delivery Address');
+
+                                          return Text(
+                                            locationTitle,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),

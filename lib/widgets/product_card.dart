@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +10,6 @@ import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/wishlist_service.dart';
 import 'package:opem/widgets/ui/animated_quantity_stepper.dart';
 import 'package:opem/widgets/ui/pressable_scale.dart';
-import 'package:opem/widgets/ui/shimmer_loading.dart';
 
 /// Modern Grocery Product Card with tactile press feedback, smooth
 /// image loading placeholders, out-of-stock badges, and Zepto/Blinkit-style
@@ -107,21 +105,32 @@ class _ProductCardState extends State<ProductCard> {
                   child: Container(
                     color: AppColors.surfaceMuted,
                     child: widget.product.imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: widget.product.imageUrl,
+                        ? Image.network(
+                            widget.product.imageUrl,
                             fit: BoxFit.cover,
-                            memCacheWidth: 350,
-                            memCacheHeight: 350,
-                            placeholder: (_, __) => const ShimmerLoading(
-                              child: ColoredBox(color: Colors.white),
-                            ),
-                            errorWidget: (_, __, ___) => const Center(
+                            errorBuilder: (_, __, ___) => const Center(
                               child: Icon(
                                 Icons.local_grocery_store_outlined,
                                 color: AppColors.textMuted,
                                 size: 36,
                               ),
                             ),
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                color: AppColors.surfaceMuted,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           )
                         : const Center(
                             child: Icon(

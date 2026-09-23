@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:opem/core/design_tokens.dart';
 
@@ -73,6 +74,19 @@ class _ShimmerLoadingState extends State<ShimmerLoading> with SingleTickerProvid
     final disableAnimations = mediaQuery?.disableAnimations ?? false;
     if (disableAnimations) {
       return widget.child;
+    }
+
+    if (kIsWeb) {
+      return AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final opacity = 0.4 + 0.6 * _controller.value;
+          return Opacity(
+            opacity: opacity.clamp(0.3, 1.0),
+            child: widget.child,
+          );
+        },
+      );
     }
 
     return AnimatedBuilder(

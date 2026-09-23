@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:opem/utils/observability.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum Environment {
   development,
@@ -35,14 +34,7 @@ class AppEnvironment {
     defaultValue: 'io.supabase.bbuys://login-callback',
   );
 
-  static bool get isDemoMode {
-    try {
-      Supabase.instance;
-      return false;
-    } catch (_) {
-      return true;
-    }
-  }
+  static const bool isDemoMode = false;
 
   /// Validates environment variables at application startup.
   /// Strictly prevents shipping a production build with missing or placeholder credentials.

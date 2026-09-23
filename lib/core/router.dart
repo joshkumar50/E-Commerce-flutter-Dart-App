@@ -18,6 +18,7 @@ import 'package:opem/screens/customer/checkout_screen.dart';
 import 'package:opem/screens/customer/order_detail_screen.dart';
 import 'package:opem/screens/customer/order_history_screen.dart';
 import 'package:opem/screens/customer/payment_result_screen.dart';
+import 'package:opem/screens/phone_login_screen.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/utils/constants.dart';
 
@@ -25,6 +26,7 @@ import 'package:opem/utils/constants.dart';
 class Routes {
   static const login          = '/login';
   static const register       = '/register';
+  static const phoneLogin     = '/phone-login';
   static const home           = '/';
   static const productDetail  = '/product';
   static const search         = '/search';
@@ -44,7 +46,7 @@ class Routes {
 }
 
 final appRouter = GoRouter(
-  initialLocation: (isDemoMode || authService.isSignedIn) ? Routes.home : Routes.login,
+  initialLocation: authService.isSignedIn ? Routes.home : Routes.login,
   redirect: (context, state) {
     if (isDemoMode) return null;
 
@@ -52,10 +54,11 @@ final appRouter = GoRouter(
     final loc = state.matchedLocation;
     final isAuthScreen = loc == Routes.login ||
         loc == Routes.register ||
+        loc == Routes.phoneLogin ||
         loc == Routes.forgotPassword;
 
     if (!signedIn && !isAuthScreen) return Routes.login;
-    if (signedIn && (loc == Routes.login || loc == Routes.register)) {
+    if (signedIn && (loc == Routes.login || loc == Routes.register || loc == Routes.phoneLogin)) {
       return Routes.home;
     }
     return null;
@@ -63,6 +66,7 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(path: Routes.login, builder: (_, __) => const LoginScreen()),
     GoRoute(path: Routes.register, builder: (_, __) => const RegisterScreen()),
+    GoRoute(path: Routes.phoneLogin, builder: (_, __) => const PhoneLoginScreen()),
     GoRoute(path: Routes.forgotPassword, builder: (_, __) => ForgotPasswordScreen()),
 
     // Customer App Main Navigation (Persistent Bottom Navigation)

@@ -19,7 +19,35 @@ class ProfileService {
             .eq('id', userId)
             .maybeSingle();
 
-        if (data == null) return null;
+        if (data == null) {
+          // If the profile does not exist yet (e.g. initial Google or Phone login), auto-provision customer profile
+          final user = Supabase.instance.client.auth.currentUser;
+          if (user != null && user.id == userId) {
+            final name = (user.userMetadata?['full_name'] as String?) ??
+                (user.userMetadata?['name'] as String?) ??
+                (user.phone != null && user.phone!.isNotEmpty ? 'Customer ${user.phone}' : 'Customer');
+            final email = user.email ?? (user.phone != null ? '${user.phone}@phone.auth' : '');
+            final phone = user.phone;
+            final avatarUrl = user.userMetadata?['avatar_url'] as String?;
+
+            final newProfile = <String, dynamic>{
+              'id': userId,
+              'full_name': name,
+              'email': email,
+              if (phone != null) 'phone': phone,
+              if (avatarUrl != null) 'avatar_url': avatarUrl,
+              'role': 'customer',
+            };
+
+            try {
+              await Supabase.instance.client.from(tableProfiles).upsert(newProfile);
+              return Profile.fromJson(newProfile);
+            } catch (_) {
+              return null;
+            }
+          }
+          return null;
+        }
         return Profile.fromJson(data);
       },
     );

@@ -1,7 +1,9 @@
 library;
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 /// Global constants and environment configuration.
-/// Values can be supplied via `--dart-define` during build or left empty to use Demo Mode.
+/// Defaults to configured live Supabase cloud instance.
 
 const String appName = 'B-Buys Grocery';
 const String adminAppName = 'B-Buys Store Admin';
@@ -9,15 +11,15 @@ const String adminAppName = 'B-Buys Store Admin';
 /// Threshold below which products are flagged as 'Low Stock'
 const int kLowStockThreshold = 10;
 
-// Supabase credentials (read from compilation environment or fallback to empty)
+// Supabase credentials (defaults to configured live cloud instance)
 const String supabaseUrl = String.fromEnvironment(
   'SUPABASE_URL',
-  defaultValue: '',
+  defaultValue: 'https://eqhkqkewhpvxfwaggkmt.supabase.co',
 );
 
 const String supabaseAnonKey = String.fromEnvironment(
   'SUPABASE_ANON_KEY',
-  defaultValue: '',
+  defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGtxa2V3aHB2eGZ3YWdna210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODAxMDMsImV4cCI6MjEwNTY1NjEwM30.Oqxw8a7YC4DacRPO4ZZPXI_rbtCwHkyNrHMdkephAmc',
 );
 
 const String authRedirectUri = String.fromEnvironment(
@@ -27,7 +29,7 @@ const String authRedirectUri = String.fromEnvironment(
 
 const String googleWebClientId = String.fromEnvironment(
   'GOOGLE_CLIENT_ID_WEB',
-  defaultValue: '',
+  defaultValue: '698682998100-862m22e2v6f5jnbnja7rl1mejq9cokkr.apps.googleusercontent.com',
 );
 
 const String googleIosClientId = String.fromEnvironment(
@@ -35,9 +37,17 @@ const String googleIosClientId = String.fromEnvironment(
   defaultValue: '',
 );
 
-/// True when Supabase credentials have not been configured.
-/// The app uses DemoDataService with mock grocery data instead.
-const bool isDemoMode = supabaseUrl == '';
+/// True only during headless unit tests where Supabase has not been initialized.
+/// In app runtime, Supabase is initialized at boot and isDemoMode is strictly false.
+bool get isDemoMode {
+  try {
+    Supabase.instance;
+    return false;
+  } catch (_) {
+    return true;
+  }
+}
+
 
 // Normalized Database Table Names
 const String tableProfiles      = 'profiles';

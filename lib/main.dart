@@ -17,12 +17,16 @@ Future<void> main() async {
 
   _configLoading();
 
-  if (!isDemoMode) {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      publishableKey: supabaseAnonKey,
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw StateError(
+      'FATAL: Supabase configuration is missing. The app requires a valid SUPABASE_URL and SUPABASE_ANON_KEY to operate online.',
     );
   }
+
+  await Supabase.initialize(
+    url: supabaseUrl,
+    publishableKey: supabaseAnonKey,
+  );
 
   // Phase 8 Operations & Telemetry initialization
   AnalyticsService.instance.init();

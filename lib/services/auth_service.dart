@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:opem/demo/demo_data.dart';
 import 'package:opem/models/profile.dart';
 import 'package:opem/services/profile_service.dart';
 import 'package:opem/utils/constants.dart';
@@ -17,30 +16,31 @@ class AuthService {
   // ─── State Getters ─────────────────────────────────────────────────────────
 
   bool get isSignedIn {
-    if (isDemoMode) return true; // In demo mode, treated as demo customer
-    return Supabase.instance.client.auth.currentUser != null;
+    try {
+      return Supabase.instance.client.auth.currentUser != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   User? get currentUser {
-    if (isDemoMode) return null;
-    return Supabase.instance.client.auth.currentUser;
+    try {
+      return Supabase.instance.client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
   }
 
-  String? get currentUserId {
-    if (isDemoMode) return DemoDataService.demoCustomerProfile.id;
-    return currentUser?.id;
-  }
+  String? get currentUserId => currentUser?.id;
 
-  String? get currentUserEmail {
-    if (isDemoMode) return DemoDataService.demoCustomerProfile.email;
-    return currentUser?.email;
-  }
+  String? get currentUserEmail => currentUser?.email;
 
   Stream<AuthState> get authStateChanges {
-    if (isDemoMode) {
+    try {
+      return Supabase.instance.client.auth.onAuthStateChange;
+    } catch (_) {
       return const Stream<AuthState>.empty();
     }
-    return Supabase.instance.client.auth.onAuthStateChange;
   }
 
   // ─── Authentication Methods ────────────────────────────────────────────────
@@ -50,10 +50,6 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    if (isDemoMode) {
-      return AuthResponse();
-    }
-
     try {
       return await Supabase.instance.client.auth.signInWithPassword(
         email: email.trim(),
@@ -70,10 +66,6 @@ class AuthService {
     required String password,
     String? fullName,
   }) async {
-    if (isDemoMode) {
-      return AuthResponse();
-    }
-
     try {
       return await Supabase.instance.client.auth.signUp(
         email: email.trim(),
@@ -90,18 +82,21 @@ class AuthService {
   /// Sign In with Google
   /// Automatically uses native ID token on mobile and OAuth redirect on Web.
   Future<AuthResponse?> signInWithGoogle() async {
-    if (isDemoMode) return AuthResponse();
-
     try {
       if (kIsWeb) {
-        // Web OAuth Redirect
+        // Web OAuth Redirect directly returns to the running browser window
+        await Supabase.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+        );
+        return null;
+      } else if (googleWebClientId.isEmpty) {
         await Supabase.instance.client.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: authRedirectUri,
         );
         return null;
       } else {
-        // Native Google Sign-In on iOS / Android
+        // Native Google Sign-In with ID Token (When GOOGLE_CLIENT_ID_WEB is configured)
         final googleUser = await _googleSignIn.signIn();
         if (googleUser == null) {
           // User cancelled the login flow
@@ -127,27 +122,81 @@ class AuthService {
     } on AuthException catch (e) {
       throw _mapAuthException(e);
     } catch (e) {
+      // Automatic fallback to universal OAuth redirect
+      try {
+        await Supabase.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: authRedirectUri,
+        );
+        return null;
+      } catch (_) {
+        throw AuthException(e.toString());
+      }
+    }
+  }
+
+  /// Send an SMS OTP code to a phone number.
+  /// Format must be E.164 (e.g. +919876543210).
+  Future<void> signInWithPhone({required String phone}) async {
+    try {
+      await Supabase.instance.client.auth.signInWithOtp(
+        phone: phone.trim(),
+      );
+    } on AuthException catch (e) {
+      throw _mapAuthException(e);
+    } catch (e) {
+      throw AuthException(e.toString());
+    }
+  }
+
+  /// Verify 6-digit SMS OTP code.
+  Future<AuthResponse> verifyPhoneOtp({
+    required String phone,
+    required String token,
+  }) async {
+    try {
+      final response = await Supabase.instance.client.auth.verifyOTP(
+        phone: phone.trim(),
+        token: token.trim(),
+        type: OtpType.sms,
+      );
+      return response;
+    } on AuthException catch (e) {
+      throw _mapAuthException(e);
+    } catch (e) {
+      throw AuthException(e.toString());
+    }
+  }
+
+  /// Resend SMS OTP to the provided phone number.
+  Future<void> resendPhoneOtp({required String phone}) async {
+    try {
+      await Supabase.instance.client.auth.resend(
+        type: OtpType.sms,
+        phone: phone.trim(),
+      );
+    } on AuthException catch (e) {
+      throw _mapAuthException(e);
+    } catch (e) {
       throw AuthException(e.toString());
     }
   }
 
   /// Sign Out
   Future<void> signOut() async {
-    if (isDemoMode) return;
-
     try {
       if (!kIsWeb) {
         await _googleSignIn.signOut();
       }
     } catch (_) {}
 
-    await Supabase.instance.client.auth.signOut();
+    try {
+      await Supabase.instance.client.auth.signOut();
+    } catch (_) {}
   }
 
   /// Send password reset link to user email
   Future<void> resetPassword(String email) async {
-    if (isDemoMode) return;
-
     try {
       await Supabase.instance.client.auth.resetPasswordForEmail(
         email.trim(),
@@ -173,6 +222,12 @@ class AuthService {
       return const AuthException('Invalid email or password. Please try again.');
     } else if (msg.contains('user already registered') || msg.contains('already exists')) {
       return const AuthException('An account with this email already exists.');
+    } else if (msg.contains('token has expired') || msg.contains('otp expired') || msg.contains('invalid token')) {
+      return const AuthException('Invalid or expired OTP code. Please request a new one.');
+    } else if (msg.contains('sms') || msg.contains('provider') || msg.contains('unsupported phone provider')) {
+      return const AuthException('SMS service is not yet enabled in Supabase Dashboard. Please configure an SMS provider (Twilio).');
+    } else if (msg.contains('rate limit') || msg.contains('too many requests')) {
+      return const AuthException('Too many attempts. Please wait a moment before trying again.');
     } else if (msg.contains('network') || msg.contains('connection')) {
       return const AuthException('Network error. Please check your internet connection.');
     }
@@ -181,3 +236,4 @@ class AuthService {
 }
 
 final authService = AuthService();
+

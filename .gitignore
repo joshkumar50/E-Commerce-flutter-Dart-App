@@ -54,6 +54,8 @@ key.properties
 # Local SDK and build configs
 **/android/local.properties
 **/android/.gradle/
+**/android/build/
+**/android/app/build/
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/Flutter/ephemeral/

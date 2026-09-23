@@ -10,6 +10,16 @@ import 'package:uuid/uuid.dart';
 class CheckoutService {
   static const _uuid = Uuid();
 
+  bool get _shouldUseMockFallback {
+    if (isDemoMode) return true;
+    try {
+      Supabase.instance.client;
+      return false;
+    } catch (_) {
+      return true;
+    }
+  }
+
   /// Initiates server-authoritative checkout.
   /// Locks product rows server-side, checks stock, decrements inventory, and creates pending order.
   Future<Map<String, dynamic>> initiateCheckout({
@@ -20,7 +30,7 @@ class CheckoutService {
   }) async {
     final key = idempotencyKey ?? _uuid.v4();
 
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       final user = authService.currentUser;
       final userId = user?.id ?? 'demo-user-123';
       return await DemoTransactionService.instance.createCheckout(
@@ -57,7 +67,7 @@ class CheckoutService {
     required String providerSignature,
     String paymentMethod = 'upi',
   }) async {
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       return await DemoTransactionService.instance.verifyPayment(
         orderId: orderId,
         providerPaymentId: providerPaymentId,
@@ -88,7 +98,7 @@ class CheckoutService {
     required String orderId,
     String reason = 'Payment was cancelled or declined by user',
   }) async {
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       return await DemoTransactionService.instance.handlePaymentFailure(
         orderId: orderId,
         reason: reason,
@@ -112,7 +122,7 @@ class CheckoutService {
 
   /// Sweeps and releases expired inventory holds (>15 minutes).
   Future<int> sweepExpiredReservations() async {
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       return await DemoTransactionService.instance.expireReservations();
     }
 
@@ -131,7 +141,7 @@ class CheckoutService {
     required String providerPaymentId,
     Map<String, dynamic>? payload,
   }) async {
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       return await DemoTransactionService.instance.processPaymentWebhook(
         providerEventId: providerEventId,
         eventType: eventType,
@@ -161,7 +171,7 @@ class CheckoutService {
 
   /// Triggers automated system data reconciliation and health check.
   Future<Map<String, dynamic>> reconcileSystemData() async {
-    if (isDemoMode) {
+    if (_shouldUseMockFallback) {
       return await DemoTransactionService.instance.reconcileSystemData();
     }
 

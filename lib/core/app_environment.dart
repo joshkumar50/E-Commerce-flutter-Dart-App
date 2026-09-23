@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:opem/utils/observability.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum Environment {
   development,
@@ -21,14 +22,27 @@ class AppEnvironment {
     _ => Environment.development,
   };
 
-  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-  static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://eqhkqkewhpvxfwaggkmt.supabase.co',
+  );
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGtxa2V3aHB2eGZ3YWdna210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODAxMDMsImV4cCI6MjEwNTY1NjEwM30.Oqxw8a7YC4DacRPO4ZZPXI_rbtCwHkyNrHMdkephAmc',
+  );
   static const String authRedirectUri = String.fromEnvironment(
     'AUTH_REDIRECT_URI',
     defaultValue: 'io.supabase.bbuys://login-callback',
   );
 
-  static bool get isDemoMode => supabaseUrl.isEmpty;
+  static bool get isDemoMode {
+    try {
+      Supabase.instance;
+      return false;
+    } catch (_) {
+      return true;
+    }
+  }
 
   /// Validates environment variables at application startup.
   /// Strictly prevents shipping a production build with missing or placeholder credentials.

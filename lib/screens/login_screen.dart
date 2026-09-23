@@ -125,7 +125,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: const Text('Sign In', style: TextStyle(fontSize: 16)),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () => context.push(Routes.phoneLogin),
+                icon: const Icon(Icons.phone_iphone_rounded, size: 22, color: Color(0xFF059669)),
+                label: const Text('Continue with Phone Number', style: TextStyle(fontSize: 15)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _handleGoogleSignIn,
                 icon: const Icon(Icons.g_mobiledata, size: 28),

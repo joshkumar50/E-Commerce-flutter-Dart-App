@@ -9,11 +9,17 @@
 -- inventory stock, and high-resolution images.
 -- ============================================================================
 
--- 0. Wipe out any old mock / placeholder data
-DELETE FROM public.cart_items;
-DELETE FROM public.wishlist_items;
-DELETE FROM public.products;
-DELETE FROM public.categories;
+-- 0. Wipe out any old mock / placeholder data safely with CASCADE
+TRUNCATE TABLE 
+  public.inventory_reservations,
+  public.inventory_ledger,
+  public.order_items,
+  public.cart_items,
+  public.wishlist_items,
+  public.product_images,
+  public.products,
+  public.categories
+CASCADE;
 
 -- 1. Insert Real Categories
 INSERT INTO public.categories (id, name, description, icon, image_url, sort_order, is_active)

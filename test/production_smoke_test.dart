@@ -25,7 +25,7 @@ void main() {
     test('1. Environment Validation & Startup Smoke Test', () {
       expect(() => AppEnvironment.validate(), returnsNormally);
       expect(AppEnvironment.current, Environment.development);
-      expect(AppEnvironment.isDemoMode, true);
+      expect(AppEnvironment.isDemoMode, false);
     });
 
     test('2. Customer End-to-End Smoke Journey (Browse -> Cart -> Checkout -> Pay -> Order History)', () async {

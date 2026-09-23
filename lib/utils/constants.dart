@@ -35,9 +35,9 @@ const String googleIosClientId = String.fromEnvironment(
   defaultValue: '',
 );
 
-/// Mock and Demo mode are permanently disabled.
-/// All data queries, inserts, streams, and operations run 100% online through Supabase.
-const bool isDemoMode = false;
+/// By default, demo mode is false (100% online through Supabase).
+/// Can only be enabled explicitly during offline unit testing via --dart-define=DEMO_MODE=true.
+const bool isDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 
 
 // Normalized Database Table Names

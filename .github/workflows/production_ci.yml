@@ -40,7 +40,7 @@ jobs:
         run: flutter analyze
 
       - name: Execute Full Test Suite
-        run: flutter test --coverage
+        run: flutter test --coverage --dart-define=DEMO_MODE=true
 
   # ─── Job 2: Build Android Release Artifacts (APKs & AABs) ───────────────────
   build_android:

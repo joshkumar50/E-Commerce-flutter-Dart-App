@@ -84,9 +84,10 @@ class AuthService {
   Future<AuthResponse?> signInWithGoogle() async {
     try {
       if (kIsWeb) {
-        // Web OAuth Redirect directly returns to the running browser window
+        // Web OAuth Redirect directly returns to the running browser origin
         await Supabase.instance.client.auth.signInWithOAuth(
           OAuthProvider.google,
+          redirectTo: Uri.base.origin,
         );
         return null;
       } else if (googleWebClientId.isEmpty) {

@@ -22,13 +22,12 @@ TRUNCATE TABLE
 CASCADE;
 
 -- 1. Insert Real Categories
-INSERT INTO public.categories (id, name, description, icon, image_url, sort_order, is_active)
+INSERT INTO public.categories (id, name, description, image_url, sort_order, is_active)
 VALUES
   (
     'c1111111-1111-1111-1111-111111111111',
     'Fruits',
     'Fresh seasonal and exotic organic fruits harvested daily',
-    'apple',
     'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=640&q=80',
     1,
     true
@@ -37,7 +36,6 @@ VALUES
     'c2222222-2222-2222-2222-222222222222',
     'Vegetables',
     'Farm-fresh leafy greens and root vegetables',
-    'carrot',
     'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=640&q=80',
     2,
     true
@@ -46,7 +44,6 @@ VALUES
     'c3333333-3333-3333-3333-333333333333',
     'Dairy & Eggs',
     'Fresh cow milk, paneer, butter, cheese, and farm eggs',
-    'egg',
     'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=640&q=80',
     3,
     true
@@ -55,7 +52,6 @@ VALUES
     'c4444444-4444-4444-4444-444444444444',
     'Bakery',
     'Fresh artisan bread, burger buns, and morning pastries',
-    'bread',
     'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=640&q=80',
     4,
     true
@@ -64,16 +60,14 @@ VALUES
     'c5555555-5555-5555-5555-555555555555',
     'Beverages',
     'Cold-pressed juices, tender coconut water, and artisanal teas',
-    'coffee',
     'https://images.unsplash.com/photo-1534353473418-4cfa6c56fd38?auto=format&fit=crop&w=640&q=80',
     5,
     true
   ),
   (
     'c6666666-6666-6666-6666-666666666666',
-    'Snacks & Munchies',
+    'Snacks',
     'Roasted nuts, dry fruits, energy bars, and treats',
-    'cookie',
     'https://images.unsplash.com/photo-1621996346565-e3d5d6281729?auto=format&fit=crop&w=640&q=80',
     6,
     true

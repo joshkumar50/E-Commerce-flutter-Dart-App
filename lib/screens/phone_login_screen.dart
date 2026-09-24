@@ -97,7 +97,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Failed to send verification code. Please try again.');
+      EasyLoading.showError('Error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
       EasyLoading.dismiss();
@@ -130,7 +130,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Invalid code or verification failed.');
+      EasyLoading.showError('Verification failed: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
       EasyLoading.dismiss();
@@ -151,7 +151,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Failed to resend code. Please try again.');
+      EasyLoading.showError('Error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
       EasyLoading.dismiss();

@@ -227,6 +227,8 @@ class AuthService {
       return const AuthException('Invalid or expired OTP code. Please request a new one.');
     } else if (msg.contains('sms') || msg.contains('provider') || msg.contains('unsupported phone provider')) {
       return const AuthException('SMS service is not yet enabled in Supabase Dashboard. Please configure an SMS provider (Twilio).');
+    } else if (msg.contains('email_not_confirmed') || msg.contains('email not confirmed')) {
+      return const AuthException('Email address is not confirmed. Please try signing up again now that confirmations are off.');
     } else if (msg.contains('rate limit') || msg.contains('too many requests')) {
       return const AuthException('Too many attempts. Please wait a moment before trying again.');
     } else if (msg.contains('network') || msg.contains('connection')) {

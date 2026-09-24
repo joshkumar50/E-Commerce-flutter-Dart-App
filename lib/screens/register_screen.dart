@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('An unexpected error occurred.');
+      EasyLoading.showError('Error: ${e.toString()}');
     } finally {
       EasyLoading.dismiss();
     }
@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Google sign up failed.');
+      EasyLoading.showError('Google sign up failed: ${e.toString()}');
     } finally {
       EasyLoading.dismiss();
     }

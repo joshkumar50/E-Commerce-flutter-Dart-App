@@ -173,7 +173,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           if (context.mounted) Navigator.pop(context);
                           setState(() {});
                         } catch (e) {
-                          EasyLoading.showError('Failed to save address');
+                          EasyLoading.showError('Failed to save address: ${e.toString()}');
                         }
                       },
                       child: Container(

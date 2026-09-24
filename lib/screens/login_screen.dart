@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('An unexpected error occurred.');
+      EasyLoading.showError('Error: ${e.toString()}');
     } finally {
       EasyLoading.dismiss();
     }
@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Google sign in failed.');
+      EasyLoading.showError('Google sign in failed: ${e.toString()}');
     } finally {
       EasyLoading.dismiss();
     }

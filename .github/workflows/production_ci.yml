@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   # ─── Job 1: Quality Gate & Automated Testing ────────────────────────────────
   lint_and_test:
@@ -92,37 +95,88 @@ jobs:
             echo "Deterministic release keystore configured successfully."
           fi
 
-      # ─── Build Direct-Install APKs ──────────────────────────────────────────
+      # ─── Build Direct-Install APKs with Incremental Build Numbers ───────────
       - name: Build Customer App APK
-        run: flutter build apk --flavor customer -t lib/main.dart --android-skip-build-dependency-validation
+        run: flutter build apk --flavor customer -t lib/main.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App APK
-        run: flutter build apk --flavor admin -t lib/main_admin.dart --android-skip-build-dependency-validation
+        run: flutter build apk --flavor admin -t lib/main_admin.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
-        run: flutter build appbundle --flavor customer -t lib/main.dart --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor customer -t lib/main.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App Bundle (AAB)
-        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
-      - name: Inspect Build Artifacts
+      # ─── Prepare Distribution Artifacts & Version Manifest ───────────────────
+      - name: Prepare In-App Auto-Update Release Bundle
         run: |
-          ls -la build/app/outputs/flutter-apk/ || true
+          mkdir -p build/dist
+          CUSTOMER_APK=$(find build/app/outputs/flutter-apk -type f -name "*customer*.apk" | head -n 1)
+          cp "$CUSTOMER_APK" build/dist/app-customer-release.apk
+
+          ADMIN_APK=$(find build/app/outputs/flutter-apk -type f -name "*admin*.apk" | head -n 1)
+          cp "$ADMIN_APK" build/dist/app-admin-release.apk
+
+          cat <<EOF > build/dist/version.json
+          {
+            "version_name": "1.0.${{ github.run_number }}",
+            "version_code": ${{ github.run_number }},
+            "release_tag": "v1.0.${{ github.run_number }}",
+            "published_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+            "release_notes": "Continuous update built from commit ${{ github.sha }}.",
+            "customer_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-customer-release.apk",
+            "admin_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-admin-release.apk",
+            "force_update": false
+          }
+          EOF
+          cat build/dist/version.json
+
+      # ─── Publish GitHub Release for In-App Auto-Updates ─────────────────────
+      - name: Publish In-App Auto-Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "B-Buys Release v1.0.${{ github.run_number }}"
+          body: |
+            ## 🚀 In-App Auto-Update Release
+            This release is automatically queried and installed by running B-Buys mobile apps.
+
+            - **Build Number:** `${{ github.run_number }}`
+            - **Commit:** `${{ github.sha }}`
+            - **Published:** Automated build from `main`
+          files: |
+            build/dist/app-customer-release.apk
+            build/dist/app-admin-release.apk
+            build/dist/version.json
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ─── Sync version.json back to main repository (Zero-rate-limit source) ───
+      - name: Sync version.json to Repository
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cp build/dist/version.json ./version.json
+          git add version.json
+          git commit -m "chore(release): update in-app version manifest to 1.0.${{ github.run_number }} [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "Failed to push version.json"
 
       # ─── Upload Downloadable APK Artifacts ──────────────────────────────────
       - name: Upload Customer APK
         uses: actions/upload-artifact@v4
         with:
           name: customer-app-apk
-          path: build/app/outputs/flutter-apk/*customer*.apk
+          path: build/dist/app-customer-release.apk
           retention-days: 30
 
       - name: Upload Admin APK
         uses: actions/upload-artifact@v4
         with:
           name: admin-app-apk
-          path: build/app/outputs/flutter-apk/*admin*.apk
+          path: build/dist/app-admin-release.apk
           retention-days: 30
 
       # ─── Upload Play Store AAB Bundles ──────────────────────────────────────

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opem/core/admin_theme.dart';
 import 'package:opem/provider/admin_provider.dart';
+import 'package:opem/services/app_update_service.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:provider/provider.dart';
 
@@ -189,6 +190,53 @@ class AdminProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
           ],
+
+          // ─── Direct App Updates & Deployment ─────────────────────────────
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.system_update_rounded, color: AdminColors.primary, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Direct App Updates',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Built-in Over-The-Air app update delivery directly from GitHub repository releases.',
+                    style: TextStyle(fontSize: 12, color: AdminColors.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        AppUpdateService.instance.checkForUpdate(
+                          isAdmin: true,
+                          context: context,
+                          isManual: true,
+                        );
+                      },
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Check for Admin App Update'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AdminColors.primary,
+                        side: const BorderSide(color: AdminColors.primary),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // ─── Logout Button ────────────────────────────────────────────────
           ElevatedButton.icon(

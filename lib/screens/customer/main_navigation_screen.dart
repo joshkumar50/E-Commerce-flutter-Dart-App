@@ -6,6 +6,7 @@ import 'package:opem/screens/customer/cart_screen.dart';
 import 'package:opem/screens/customer/home_screen.dart';
 import 'package:opem/screens/customer/profile_screen.dart';
 import 'package:opem/screens/customer/wishlist_screen.dart';
+import 'package:opem/services/app_update_service.dart';
 import 'package:provider/provider.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -32,6 +33,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    // Check for updates automatically in the background
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        AppUpdateService.instance.checkForUpdate(
+          isAdmin: false,
+          context: context,
+        );
+      }
+    });
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:opem/core/design_tokens.dart';
 import 'package:opem/core/router.dart';
 import 'package:opem/provider/user_provider.dart';
+import 'package:opem/services/app_update_service.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/widgets/ui/pressable_scale.dart';
 
@@ -156,6 +157,19 @@ class ProfileScreen extends StatelessWidget {
                       children: const [
                         Text('B-Buys Grocery delivers high-quality, farm-fresh produce and daily essentials.'),
                       ],
+                    );
+                  },
+                ),
+                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                _ProfileMenuItem(
+                  icon: Icons.system_update_rounded,
+                  title: 'Check for Updates',
+                  subtitle: 'Direct in-app auto updates from GitHub',
+                  onTap: () {
+                    AppUpdateService.instance.checkForUpdate(
+                      isAdmin: false,
+                      context: context,
+                      isManual: true,
                     );
                   },
                 ),

@@ -6,6 +6,7 @@ import 'package:opem/screens/admin/admin_dashboard_screen.dart';
 import 'package:opem/screens/admin/admin_orders_screen.dart';
 import 'package:opem/screens/admin/admin_products_screen.dart';
 import 'package:opem/screens/admin/admin_profile_screen.dart';
+import 'package:opem/services/app_update_service.dart';
 
 class AdminMainScreen extends StatefulWidget {
   final int initialIndex;
@@ -24,6 +25,16 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    // Check for updates automatically in background
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        AppUpdateService.instance.checkForUpdate(
+          isAdmin: true,
+          context: context,
+        );
+      }
+    });
   }
 
   void _navigateToTab(int index, {String? filter}) {

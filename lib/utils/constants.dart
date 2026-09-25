@@ -27,7 +27,7 @@ const String authRedirectUri = String.fromEnvironment(
 
 const String googleWebClientId = String.fromEnvironment(
   'GOOGLE_CLIENT_ID_WEB',
-  defaultValue: '698682998100-862m22e2v6f5jnbnja7rl1mejq9cokkr.apps.googleusercontent.com',
+  defaultValue: '698682998100-v8re33k7lae4o5r0plhhmau9m43pdm5q.apps.googleusercontent.com',
 );
 
 const String googleIosClientId = String.fromEnvironment(

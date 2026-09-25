@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opem/models/product.dart';
 import 'package:opem/screens/b_orders_screen.dart';
@@ -45,8 +47,29 @@ class Routes {
   static const sellOrders     = '/sell-orders';
 }
 
+/// Listenable that notifies GoRouter to re-evaluate route redirection
+/// immediately whenever Supabase authentication state changes (e.g. OAuth callback).
+class AuthRouterListenable extends ChangeNotifier {
+  late final StreamSubscription _subscription;
+
+  AuthRouterListenable() {
+    _subscription = authService.authStateChanges.listen((_) {
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+final authRouterListenable = AuthRouterListenable();
+
 final appRouter = GoRouter(
   initialLocation: authService.isSignedIn ? Routes.home : Routes.login,
+  refreshListenable: authRouterListenable,
   redirect: (context, state) {
     if (isDemoMode) return null;
 

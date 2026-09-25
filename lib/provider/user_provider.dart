@@ -35,6 +35,7 @@ class UserProvider extends ChangeNotifier {
       final session = data.session;
       if (session != null) {
         _subscribeToProfile(session.user.id);
+        loadProfile();
       } else {
         reset();
       }

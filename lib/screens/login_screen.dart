@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
@@ -18,9 +19,26 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Seamlessly handle OAuth / deep-link redirects back to the app
+    _authSub = authService.authStateChanges.listen((data) async {
+      if (data.event == AuthChangeEvent.signedIn && mounted) {
+        EasyLoading.dismiss();
+        await context.read<UserProvider>().loadProfile();
+        if (mounted) {
+          context.go(Routes.home);
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _authSub?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -54,16 +72,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final res = await authService.signInWithGoogle();
       if (!mounted) return;
       if (res != null || authService.isSignedIn) {
+        EasyLoading.dismiss();
         await context.read<UserProvider>().loadProfile();
         if (!mounted) return;
         context.go(Routes.home);
+      } else {
+        // Fallback to browser OAuth was initiated: display connecting status while waiting for callback
+        EasyLoading.show(status: 'Completing Google Sign-In…');
       }
     } on AuthException catch (e) {
+      EasyLoading.dismiss();
       EasyLoading.showError(e.message);
     } catch (e) {
-      EasyLoading.showError('Google sign in failed: ${e.toString()}');
-    } finally {
       EasyLoading.dismiss();
+      EasyLoading.showError('Google sign in failed: ${e.toString()}');
     }
   }
 

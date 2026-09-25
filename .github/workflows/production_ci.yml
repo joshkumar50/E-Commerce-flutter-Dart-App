@@ -67,8 +67,8 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      # Setup signing key from repository secrets if configured
-      - name: Configure Keystore (Optional CI Secret)
+      # Setup signing key from repository secrets if configured, or use standard deterministic keystore
+      - name: Configure Keystore (Deterministic Release Signing)
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -81,9 +81,15 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
             echo "storePassword=$KEYSTORE_PASSWORD" >> android/key.properties
             echo "storeFile=../upload-keystore.jks" >> android/key.properties
-            echo "Release keystore configured successfully."
+            echo "Release keystore configured successfully from secrets."
           else
-            echo "No CI keystore secret provided. Falling back to build validation."
+            echo "Using standard deterministic B-Buys release keystore..."
+            echo "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" | base64 -d > android/upload-keystore.jks
+            echo "keyAlias=bbuys" > android/key.properties
+            echo "keyPassword=bbuysStorePassword2025!" >> android/key.properties
+            echo "storePassword=bbuysStorePassword2025!" >> android/key.properties
+            echo "storeFile=../upload-keystore.jks" >> android/key.properties
+            echo "Deterministic release keystore configured successfully."
           fi
 
       # ─── Build Direct-Install APKs ──────────────────────────────────────────

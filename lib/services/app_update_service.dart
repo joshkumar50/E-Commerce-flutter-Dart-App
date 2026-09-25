@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +17,7 @@ class AppUpdateInfo {
   final int latestVersionCode;
   final String releaseNotes;
   final String downloadUrl;
+  final String? sha256;
   final bool forceUpdate;
 
   const AppUpdateInfo({
@@ -26,6 +28,7 @@ class AppUpdateInfo {
     required this.latestVersionCode,
     required this.releaseNotes,
     required this.downloadUrl,
+    this.sha256,
     this.forceUpdate = false,
   });
 }
@@ -95,6 +98,7 @@ class AppUpdateService {
       final releaseNotes = remoteManifest['release_notes'] as String? ?? 'New version with bug fixes and stability improvements.';
       final downloadUrl = remoteManifest['apk_url'] as String? ?? '';
       final forceUpdate = remoteManifest['force_update'] as bool? ?? false;
+      final remoteSha256 = remoteManifest['sha256'] as String?;
 
       final hasUpdate = remoteVersionCode > currentVersionCode;
 
@@ -106,6 +110,7 @@ class AppUpdateService {
         latestVersionCode: remoteVersionCode,
         releaseNotes: releaseNotes,
         downloadUrl: downloadUrl,
+        sha256: remoteSha256,
         forceUpdate: forceUpdate,
       );
 
@@ -134,9 +139,10 @@ class AppUpdateService {
     }
   }
 
-  /// Download the APK from [downloadUrl] and initiate Android package installation
+  /// Download the APK from [downloadUrl] with integrity validation, retry resilience, and native installation trigger
   Future<void> downloadAndInstall({
     required String downloadUrl,
+    String? expectedSha256,
     required Function(double progress, int receivedBytes, int totalBytes) onProgress,
     required VoidCallback onComplete,
     required Function(String error) onError,
@@ -162,28 +168,68 @@ class AppUpdateService {
       } catch (_) {}
 
       final apkFile = File('$cacheDirPath/bbuys_update_${DateTime.now().millisecondsSinceEpoch}.apk');
-      final request = await client.getUrl(Uri.parse(downloadUrl));
-      request.headers.set('User-Agent', 'B-Buys-App-Updater');
-      request.followRedirects = true;
-      final response = await request.close();
 
-      if (response.statusCode != 200) {
-        throw HttpException('Download failed with server status ${response.statusCode}');
+      // Resilient download with up to 3 automatic retries
+      int attempts = 0;
+      const maxAttempts = 3;
+      bool downloadSuccess = false;
+      String lastNetworkError = '';
+
+      while (attempts < maxAttempts && !downloadSuccess) {
+        attempts++;
+        try {
+          final request = await client.getUrl(Uri.parse(downloadUrl));
+          request.headers.set('User-Agent', 'B-Buys-App-Updater');
+          request.followRedirects = true;
+          final response = await request.close();
+
+          if (response.statusCode != 200) {
+            throw HttpException('Download failed with HTTP status ${response.statusCode}');
+          }
+
+          final contentLength = response.contentLength;
+          int receivedBytes = 0;
+          final sink = apkFile.openWrite();
+
+          await for (final chunk in response) {
+            sink.add(chunk);
+            receivedBytes += chunk.length;
+            final progress = contentLength > 0 ? (receivedBytes / contentLength).clamp(0.0, 1.0) : 0.0;
+            onProgress(progress, receivedBytes, contentLength);
+          }
+
+          await sink.flush();
+          await sink.close();
+          downloadSuccess = true;
+        } catch (e) {
+          lastNetworkError = e.toString();
+          debugPrint('[AppUpdateService] Download attempt $attempts failed: $e');
+          if (attempts < maxAttempts) {
+            await Future.delayed(Duration(seconds: attempts));
+          }
+        }
       }
 
-      final contentLength = response.contentLength;
-      int receivedBytes = 0;
-      final sink = apkFile.openWrite();
-
-      await for (final chunk in response) {
-        sink.add(chunk);
-        receivedBytes += chunk.length;
-        final progress = contentLength > 0 ? (receivedBytes / contentLength).clamp(0.0, 1.0) : 0.0;
-        onProgress(progress, receivedBytes, contentLength);
+      if (!downloadSuccess) {
+        throw HttpException('Unable to download update after $maxAttempts attempts: $lastNetworkError');
       }
 
-      await sink.flush();
-      await sink.close();
+      // ─── Cryptographic SHA-256 Integrity Verification ─────────────────────
+      if (expectedSha256 != null && expectedSha256.isNotEmpty) {
+        debugPrint('[AppUpdateService] Verifying SHA-256 checksum ($expectedSha256)...');
+        final digest = await sha256.bind(apkFile.openRead()).first;
+        final actualHash = digest.toString().toLowerCase();
+
+        if (actualHash != expectedSha256.toLowerCase()) {
+          try {
+            apkFile.deleteSync();
+          } catch (_) {}
+          throw HttpException(
+            'Package integrity verification failed. Expected SHA-256 $expectedSha256 but got $actualHash.',
+          );
+        }
+        debugPrint('[AppUpdateService] SHA-256 verification passed! ✅');
+      }
 
       onComplete();
 
@@ -263,6 +309,26 @@ class AppUpdateService {
     return Directory.systemTemp.path;
   }
 
+  /// Check whether the Android app has permission to install packages from unknown sources
+  Future<bool> canRequestPackageInstalls() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        final canInstall = await _channel.invokeMethod<bool>('canRequestPackageInstalls');
+        return canInstall ?? true;
+      } catch (_) {}
+    }
+    return true;
+  }
+
+  /// Opens the system Android settings page for unknown app sources
+  Future<void> openInstallPermissionSettings() async {
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        await _channel.invokeMethod('openInstallPermissionSettings');
+      } catch (_) {}
+    }
+  }
+
   Future<bool> _installApkNative(String filePath) async {
     try {
       final success = await _channel.invokeMethod<bool>('installApk', {'filePath': filePath});
@@ -279,9 +345,14 @@ class AppUpdateService {
 
     // 1. Try raw repository manifest (instant, no GitHub rate limits)
     try {
-      final cacheBustedUrl = Uri.parse('$manifestUrl?t=${DateTime.now().millisecondsSinceEpoch}');
+      final cacheBustedUrl = Uri.parse(
+        '$manifestUrl?t=${DateTime.now().millisecondsSinceEpoch}&nonce=${DateTime.now().microsecondsSinceEpoch}',
+      );
       final request = await client.getUrl(cacheBustedUrl);
       request.headers.set('User-Agent', 'B-Buys-App-Updater');
+      request.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      request.headers.set('Pragma', 'no-cache');
+      request.headers.set('Expires', '0');
       request.followRedirects = true;
       final response = await request.close();
 
@@ -293,12 +364,17 @@ class AppUpdateService {
             ? (json['admin_apk_url'] as String? ?? json['customer_apk_url'] as String? ?? '')
             : (json['customer_apk_url'] as String? ?? '');
 
+        final sha256 = isAdmin
+            ? (json['admin_sha256'] as String? ?? json['sha256'] as String?)
+            : (json['customer_sha256'] as String? ?? json['sha256'] as String?);
+
         return {
           'version_code': json['version_code'] as int? ?? 1,
           'version_name': json['version_name'] as String? ?? '1.0.0',
           'release_notes': json['release_notes'] as String? ?? 'Bug fixes and performance improvements.',
           'force_update': json['force_update'] as bool? ?? false,
           'apk_url': apkUrl,
+          'sha256': sha256,
         };
       }
     } catch (e) {
@@ -347,6 +423,7 @@ class AppUpdateService {
           'release_notes': releaseNotes,
           'force_update': false,
           'apk_url': apkUrl,
+          'sha256': null,
         };
       }
     } catch (e) {
@@ -376,7 +453,47 @@ class _AppUpdateModalDialogState extends State<AppUpdateModalDialog> {
   int _totalBytes = 0;
   String? _errorMessage;
 
-  void _startDownload() {
+  Future<void> _startDownload() async {
+    final canInstall = await AppUpdateService.instance.canRequestPackageInstalls();
+    if (!canInstall && mounted) {
+      final shouldOpenSettings = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.security_rounded, color: Color(0xFF059669), size: 24),
+              SizedBox(width: 8),
+              Text('Permission Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text(
+            'To install app updates directly, Android requires permission to install from this source.\n\nPlease tap "Open Settings" and enable "Allow from this source".',
+            style: TextStyle(fontSize: 14, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF059669),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldOpenSettings == true) {
+        await AppUpdateService.instance.openInstallPermissionSettings();
+      }
+      return;
+    }
+
     setState(() {
       _isDownloading = true;
       _errorMessage = null;
@@ -384,6 +501,7 @@ class _AppUpdateModalDialogState extends State<AppUpdateModalDialog> {
 
     AppUpdateService.instance.downloadAndInstall(
       downloadUrl: widget.updateInfo.downloadUrl,
+      expectedSha256: widget.updateInfo.sha256,
       onProgress: (progress, received, total) {
         if (mounted) {
           setState(() {

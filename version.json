@@ -5,6 +5,8 @@
   "published_at": "2026-09-25T15:17:39Z",
   "release_notes": "Continuous update built from commit e35c01b355f7af799db9f9a712ad7b2a3614ab53.",
   "customer_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-customer-release.apk",
+  "customer_sha256": null,
   "admin_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-admin-release.apk",
+  "admin_sha256": null,
   "force_update": false
 }

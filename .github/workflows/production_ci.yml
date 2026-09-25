@@ -119,6 +119,9 @@ jobs:
           ADMIN_APK=$(find build/app/outputs/flutter-apk -type f -name "*admin*.apk" | head -n 1)
           cp "$ADMIN_APK" build/dist/app-admin-release.apk
 
+          CUSTOMER_SHA256=$(sha256sum build/dist/app-customer-release.apk | awk '{print $1}')
+          ADMIN_SHA256=$(sha256sum build/dist/app-admin-release.apk | awk '{print $1}')
+
           cat <<EOF > build/dist/version.json
           {
             "version_name": "1.0.${{ github.run_number }}",
@@ -127,7 +130,9 @@ jobs:
             "published_at": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
             "release_notes": "Continuous update built from commit ${{ github.sha }}.",
             "customer_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-customer-release.apk",
+            "customer_sha256": "$CUSTOMER_SHA256",
             "admin_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-admin-release.apk",
+            "admin_sha256": "$ADMIN_SHA256",
             "force_update": false
           }
           EOF

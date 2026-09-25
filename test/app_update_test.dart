@@ -25,6 +25,20 @@ void main() {
       expect(updateInfo.forceUpdate, isFalse);
     });
 
+    test('AppUpdateInfo supports sha256 checksum field for integrity checks', () {
+      const info = AppUpdateInfo(
+        hasUpdate: true,
+        currentVersion: '1.0.0',
+        currentVersionCode: 1,
+        latestVersion: '1.0.1',
+        latestVersionCode: 2,
+        releaseNotes: 'Security patch',
+        downloadUrl: 'https://example.com/app.apk',
+        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      );
+      expect(info.sha256, equals('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'));
+    });
+
     testWidgets('AppUpdateModalDialog renders version badge, release notes, and action button', (tester) async {
       const testInfo = AppUpdateInfo(
         hasUpdate: true,

@@ -15,7 +15,7 @@ class AdminProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool get isAuthenticated => _profile != null;
-  bool get isAdmin => _profile?.role == 'admin' || _profile?.email == 'storeadmin_new@bbuys.com';
+  bool get isAdmin => _profile?.role == 'admin';
 
   AdminProvider() {
     initAdminSession();
@@ -45,13 +45,13 @@ class AdminProvider extends ChangeNotifier {
 
     try {
       final p = await profileService.fetchProfile(currentUser.id);
-      if (p != null && (p.role == 'admin' || currentUser.email == 'storeadmin_new@bbuys.com')) {
+      if (p != null && p.role == 'admin') {
         _profile = p;
         _errorMessage = null;
       } else {
-        // Logged in user is NOT an admin!
+        // Logged in user is NOT an admin in the database!
         _profile = p;
-        _errorMessage = 'Admin access required. Your account does not have administrator privileges.';
+        _errorMessage = 'Admin access required. Your account (${currentUser.email}) has role "${p?.role ?? 'customer'}" in the database. Please run: UPDATE public.profiles SET role = \'admin\' WHERE email = \'${currentUser.email}\'; in Supabase SQL Editor.';
       }
     } catch (e) {
       _errorMessage = 'Failed to verify admin credentials: $e';
@@ -96,7 +96,7 @@ class AdminProvider extends ChangeNotifier {
       }
 
       final p = await profileService.fetchProfile(user.id);
-      if (p != null && (p.role == 'admin' || user.email == 'storeadmin_new@bbuys.com')) {
+      if (p != null && p.role == 'admin') {
         _profile = p;
         _errorMessage = null;
         _isLoading = false;
@@ -106,7 +106,7 @@ class AdminProvider extends ChangeNotifier {
         // Customer attempted to log in as admin -> Deny and sign out!
         await authService.signOut();
         _profile = null;
-        _errorMessage = 'Admin access required. Your account does not have administrator privileges.';
+        _errorMessage = 'Admin access required. Your account (${user.email}) has role "${p?.role ?? 'customer'}" in the database. Please run: UPDATE public.profiles SET role = \'admin\' WHERE email = \'${user.email}\'; in Supabase SQL Editor.';
         _isLoading = false;
         notifyListeners();
         return false;

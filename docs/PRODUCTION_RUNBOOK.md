@@ -28,3 +28,44 @@ To guarantee no data loss during catastrophic failures:
 1. Ensure **Point-in-Time Recovery (PITR)** is enabled in the Supabase Dashboard -> Database -> Backups.
 2. Verify that **WAL (Write-Ahead Logging)** is capturing critical tables (Orders, Payments, Inventory Ledger).
 3. Schedule quarterly test-restores of the database to a staging environment to verify backup integrity.
+
+## Crash Reporting & PII Scrub
+
+**NEVER send raw PII (Personally Identifiable Information) to crash reporters.**
+
+If implementing crash reporting in production, you must explicitly redact all user PII (emails, phone numbers, JWTs, etc.) from metadata and breadcrumbs before transmission.
+
+**Recommended Approach (Sentry):**
+Use Sentry with a `beforeSend` hook to scrub payloads:
+
+```dart
+SentryFlutter.init(
+  (options) {
+    options.dsn = 'YOUR_DSN';
+    options.beforeSend = (event, {hint}) {
+      final jwtRegex = RegExp(r'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+');
+      
+      // Example scrub of breadcrumbs
+      final scrubbedBreadcrumbs = event.breadcrumbs?.map((b) {
+        var msg = b.message?.replaceAll(jwtRegex, '[REDACTED_JWT]');
+        // Add more scrubbing logic here for emails/phones
+        return b.copyWith(message: msg);
+      }).toList();
+      
+      return event.copyWith(breadcrumbs: scrubbedBreadcrumbs);
+    };
+  },
+  appRunner: () => runApp(const MyApp()),
+);
+```
+
+**Alternative Approach (Firebase Crashlytics):**
+If using Firebase Crashlytics, NEVER call `setUserIdentifier()` with an email or phone number. Instead, use a one-way hash of the User ID:
+```dart
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+
+// ...
+final hashedUserId = sha256.convert(utf8.encode(user.id)).toString();
+FirebaseCrashlytics.instance.setUserIdentifier(hashedUserId);
+```

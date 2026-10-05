@@ -117,22 +117,34 @@ class AppObservability {
   /// Generates unique correlation ID for end-to-end tracing
   static String newRequestId() => 'req_${_uuid.v4().substring(0, 8)}';
 
-  /// Redacts sensitive credentials (passwords, tokens, payment secrets)
+  static dynamic _redactStrings(dynamic value) {
+    if (value is String) {
+      const jwtRegex = r'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+';
+      return value.replaceAll(RegExp(jwtRegex), '[REDACTED_JWT]');
+    } else if (value is Map<String, dynamic>) {
+      return sanitize(value);
+    } else if (value is List) {
+      return value.map((e) => _redactStrings(e)).toList();
+    }
+    return value;
+  }
+
+  /// Redacts sensitive credentials (passwords, tokens, payment secrets) and PII
   static Map<String, dynamic> sanitize(Map<String, dynamic> data) {
     final clean = <String, dynamic>{};
     const sensitiveKeys = {
-      'password', 'token', 'secret', 'authorization',
-      'key', 'credit_card', 'cvv', 'access_token', 'refresh_token'
+      'password', 'token', 'secret', 'authorization', 'key', 'credit_card', 'cvv',
+      'access_token', 'refresh_token', 'phone', 'email', 'address', 'postal_code', 
+      'dob', 'ssn', 'pan', 'aadhaar', 'full_name', 'avatar_url', 'shipping_address', 
+      'billing_address'
     };
 
     for (final entry in data.entries) {
       final keyLower = entry.key.toLowerCase();
       if (sensitiveKeys.any((s) => keyLower.contains(s))) {
         clean[entry.key] = '[REDACTED]';
-      } else if (entry.value is Map<String, dynamic>) {
-        clean[entry.key] = sanitize(entry.value as Map<String, dynamic>);
       } else {
-        clean[entry.key] = entry.value;
+        clean[entry.key] = _redactStrings(entry.value);
       }
     }
     return clean;

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:opem/utils/observability.dart';
 
 /// Data class representing an available remote application update.
 class AppUpdateInfo {
@@ -129,7 +130,7 @@ class AppUpdateService {
 
       return info;
     } catch (e) {
-      debugPrint('[AppUpdateService] Error checking for updates: $e');
+      AppObservability.error('[AppUpdateService] Error checking for updates: $e');
       if (isManual) {
         EasyLoading.dismiss();
         EasyLoading.showError('Update check failed: $e');
@@ -204,7 +205,7 @@ class AppUpdateService {
           downloadSuccess = true;
         } catch (e) {
           lastNetworkError = e.toString();
-          debugPrint('[AppUpdateService] Download attempt $attempts failed: $e');
+          AppObservability.warn('[AppUpdateService] Download attempt $attempts failed: $e');
           if (attempts < maxAttempts) {
             await Future.delayed(Duration(seconds: attempts));
           }
@@ -217,7 +218,7 @@ class AppUpdateService {
 
       // ─── Cryptographic SHA-256 Integrity Verification ─────────────────────
       if (expectedSha256 != null && expectedSha256.isNotEmpty) {
-        debugPrint('[AppUpdateService] Verifying SHA-256 checksum ($expectedSha256)...');
+        AppObservability.info('[AppUpdateService] Verifying SHA-256 checksum ($expectedSha256)...');
         final digest = await sha256.bind(apkFile.openRead()).first;
         final actualHash = digest.toString().toLowerCase();
 
@@ -229,7 +230,7 @@ class AppUpdateService {
             'Package integrity verification failed. Expected SHA-256 $expectedSha256 but got $actualHash.',
           );
         }
-        debugPrint('[AppUpdateService] SHA-256 verification passed! ✅');
+        AppObservability.info('[AppUpdateService] SHA-256 verification passed! ✅');
       }
 
       onComplete();
@@ -244,7 +245,7 @@ class AppUpdateService {
         }
       }
     } catch (e) {
-      debugPrint('[AppUpdateService] Download/Install error: $e');
+      AppObservability.error('[AppUpdateService] Download/Install error: $e');
       onError(e.toString());
     } finally {
       client.close();
@@ -335,7 +336,7 @@ class AppUpdateService {
       final success = await _channel.invokeMethod<bool>('installApk', {'filePath': filePath});
       return success ?? false;
     } catch (e) {
-      debugPrint('[AppUpdateService] Native installApk call error: $e');
+      AppObservability.error('[AppUpdateService] Native installApk call error: $e');
       return false;
     }
   }
@@ -379,7 +380,7 @@ class AppUpdateService {
         };
       }
     } catch (e) {
-      debugPrint('[AppUpdateService] Raw manifest fetch failed: $e, trying GitHub API fallback');
+      AppObservability.warn('[AppUpdateService] Raw manifest fetch failed: $e, trying GitHub API fallback');
     }
 
     // 2. Fallback: Query GitHub Releases Latest API
@@ -428,7 +429,7 @@ class AppUpdateService {
         };
       }
     } catch (e) {
-      debugPrint('[AppUpdateService] GitHub releases API fallback failed: $e');
+      AppObservability.error('[AppUpdateService] GitHub releases API fallback failed: $e');
     } finally {
       client.close();
     }

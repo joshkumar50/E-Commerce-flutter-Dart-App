@@ -4,6 +4,7 @@ import 'package:opem/models/profile.dart';
 import 'package:opem/services/profile_service.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:opem/utils/rate_limiter.dart';
+import 'package:opem/utils/observability.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -132,7 +133,7 @@ class AuthService {
     } on AuthException catch (e) {
       throw _mapAuthException(e);
     } catch (e) {
-      debugPrint('[AuthService] Native Google Sign-In error: $e');
+      AppObservability.error('[AuthService] Native Google Sign-In error: $e');
       throw const AuthException('Google Sign-In failed. Ensure Google services are available.');
     }
   }

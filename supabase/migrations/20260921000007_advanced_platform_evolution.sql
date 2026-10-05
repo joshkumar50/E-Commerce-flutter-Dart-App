@@ -43,14 +43,17 @@ CREATE INDEX IF NOT EXISTS idx_event_outbox_correlation
 ALTER TABLE public.event_outbox ENABLE ROW LEVEL SECURITY;
 
 -- Only server-side functions / admins can read or manage outbox records
+DROP POLICY IF EXISTS "Admins can view event outbox" ON public.event_outbox;
 CREATE POLICY "Admins can view event outbox"
     ON public.event_outbox FOR SELECT
     USING (public.is_admin());
 
+DROP POLICY IF EXISTS "System and admins can insert outbox events" ON public.event_outbox;
 CREATE POLICY "System and admins can insert outbox events"
     ON public.event_outbox FOR INSERT
     WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admins and system can update outbox status" ON public.event_outbox;
 CREATE POLICY "Admins and system can update outbox status"
     ON public.event_outbox FOR UPDATE
     USING (public.is_admin())
@@ -92,19 +95,23 @@ CREATE INDEX IF NOT EXISTS idx_inv_location_prod
 ALTER TABLE public.fulfillment_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_by_location ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view active fulfillment locations" ON public.fulfillment_locations;
 CREATE POLICY "Anyone can view active fulfillment locations"
     ON public.fulfillment_locations FOR SELECT
     USING (is_active = true OR public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can manage fulfillment locations" ON public.fulfillment_locations;
 CREATE POLICY "Admins can manage fulfillment locations"
     ON public.fulfillment_locations FOR ALL
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Public can view location inventory availability" ON public.inventory_by_location;
 CREATE POLICY "Public can view location inventory availability"
     ON public.inventory_by_location FOR SELECT
     USING (true);
 
+DROP POLICY IF EXISTS "Admins can manage location inventory" ON public.inventory_by_location;
 CREATE POLICY "Admins can manage location inventory"
     ON public.inventory_by_location FOR ALL
     USING (public.is_admin())

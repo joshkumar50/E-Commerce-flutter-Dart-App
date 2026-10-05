@@ -38,20 +38,24 @@ CREATE INDEX IF NOT EXISTS idx_analytics_events_created
 ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
 
 -- Customers & visitors can insert their own events (non-blocking)
+DROP POLICY IF EXISTS "Anyone can insert analytics events" ON public.analytics_events;
 CREATE POLICY "Anyone can insert analytics events"
     ON public.analytics_events FOR INSERT
     WITH CHECK (true);
 
 -- Only admins can query analytics events
+DROP POLICY IF EXISTS "Admins can view analytics events" ON public.analytics_events;
 CREATE POLICY "Admins can view analytics events"
     ON public.analytics_events FOR SELECT
     USING (public.is_admin());
 
 -- Disallow updates and deletes (events are immutable)
+DROP POLICY IF EXISTS "No updates on analytics events" ON public.analytics_events;
 CREATE POLICY "No updates on analytics events"
     ON public.analytics_events FOR UPDATE
     USING (false);
 
+DROP POLICY IF EXISTS "Admins can purge expired analytics via maintenance RPC" ON public.analytics_events;
 CREATE POLICY "Admins can purge expired analytics via maintenance RPC"
     ON public.analytics_events FOR DELETE
     USING (public.is_admin());
@@ -94,19 +98,23 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created
 ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Only admins can insert and read audit logs
+DROP POLICY IF EXISTS "Admins can read audit logs" ON public.admin_audit_logs;
 CREATE POLICY "Admins can read audit logs"
     ON public.admin_audit_logs FOR SELECT
     USING (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can insert audit logs" ON public.admin_audit_logs;
 CREATE POLICY "Admins can insert audit logs"
     ON public.admin_audit_logs FOR INSERT
     WITH CHECK (public.is_admin());
 
 -- Audit logs are strictly immutable: no updates or direct deletes allowed
+DROP POLICY IF EXISTS "Audit logs cannot be updated" ON public.admin_audit_logs;
 CREATE POLICY "Audit logs cannot be updated"
     ON public.admin_audit_logs FOR UPDATE
     USING (false);
 
+DROP POLICY IF EXISTS "Audit logs cannot be deleted" ON public.admin_audit_logs;
 CREATE POLICY "Audit logs cannot be deleted"
     ON public.admin_audit_logs FOR DELETE
     USING (false);
@@ -128,11 +136,13 @@ CREATE TABLE IF NOT EXISTS public.app_config (
 ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
 
 -- Everyone can read config (needed for mobile app startup check)
+DROP POLICY IF EXISTS "Public can view app config" ON public.app_config;
 CREATE POLICY "Public can view app config"
     ON public.app_config FOR SELECT
     USING (true);
 
 -- Only admins can modify remote config
+DROP POLICY IF EXISTS "Admins can manage app config" ON public.app_config;
 CREATE POLICY "Admins can manage app config"
     ON public.app_config FOR ALL
     USING (public.is_admin())

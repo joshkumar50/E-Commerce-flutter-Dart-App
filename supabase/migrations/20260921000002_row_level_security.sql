@@ -62,11 +62,13 @@ ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
 -- 4. PROFILES RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Customers can view their own profile; Admins can view all profiles
+DROP POLICY IF EXISTS "profiles_select_policy" ON public.profiles;
 CREATE POLICY "profiles_select_policy"
     ON public.profiles FOR SELECT
     USING (auth.uid() = id OR public.is_admin());
 
 -- Customers can update their own profile fields, but CANNOT self-escalate their role
+DROP POLICY IF EXISTS "profiles_update_policy" ON public.profiles;
 CREATE POLICY "profiles_update_policy"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id OR public.is_admin())
@@ -79,20 +81,24 @@ CREATE POLICY "profiles_update_policy"
 -- 5. CATEGORIES RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Anyone authenticated can view active categories; Admins see all
+DROP POLICY IF EXISTS "categories_select_policy" ON public.categories;
 CREATE POLICY "categories_select_policy"
     ON public.categories FOR SELECT
     USING (is_active = true OR public.is_admin());
 
 -- Only admins can manage categories
+DROP POLICY IF EXISTS "categories_admin_insert" ON public.categories;
 CREATE POLICY "categories_admin_insert"
     ON public.categories FOR INSERT
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "categories_admin_update" ON public.categories;
 CREATE POLICY "categories_admin_update"
     ON public.categories FOR UPDATE
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "categories_admin_delete" ON public.categories;
 CREATE POLICY "categories_admin_delete"
     ON public.categories FOR DELETE
     USING (public.is_admin());
@@ -101,20 +107,24 @@ CREATE POLICY "categories_admin_delete"
 -- 6. PRODUCTS RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Anyone authenticated can view active products; Admins see all
+DROP POLICY IF EXISTS "products_select_policy" ON public.products;
 CREATE POLICY "products_select_policy"
     ON public.products FOR SELECT
     USING (is_active = true OR public.is_admin());
 
 -- Only admins can create, update, and delete products
+DROP POLICY IF EXISTS "products_admin_insert" ON public.products;
 CREATE POLICY "products_admin_insert"
     ON public.products FOR INSERT
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "products_admin_update" ON public.products;
 CREATE POLICY "products_admin_update"
     ON public.products FOR UPDATE
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "products_admin_delete" ON public.products;
 CREATE POLICY "products_admin_delete"
     ON public.products FOR DELETE
     USING (public.is_admin());
@@ -123,6 +133,7 @@ CREATE POLICY "products_admin_delete"
 -- 7. PRODUCT IMAGES RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Read images belonging to readable products
+DROP POLICY IF EXISTS "product_images_select_policy" ON public.product_images;
 CREATE POLICY "product_images_select_policy"
     ON public.product_images FOR SELECT
     USING (
@@ -134,15 +145,18 @@ CREATE POLICY "product_images_select_policy"
     );
 
 -- Only admins can manage product images
+DROP POLICY IF EXISTS "product_images_admin_insert" ON public.product_images;
 CREATE POLICY "product_images_admin_insert"
     ON public.product_images FOR INSERT
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "product_images_admin_update" ON public.product_images;
 CREATE POLICY "product_images_admin_update"
     ON public.product_images FOR UPDATE
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "product_images_admin_delete" ON public.product_images;
 CREATE POLICY "product_images_admin_delete"
     ON public.product_images FOR DELETE
     USING (public.is_admin());
@@ -151,19 +165,23 @@ CREATE POLICY "product_images_admin_delete"
 -- 8. ADDRESSES RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Customers manage only their own addresses
+DROP POLICY IF EXISTS "addresses_select_own" ON public.addresses;
 CREATE POLICY "addresses_select_own"
     ON public.addresses FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "addresses_insert_own" ON public.addresses;
 CREATE POLICY "addresses_insert_own"
     ON public.addresses FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "addresses_update_own" ON public.addresses;
 CREATE POLICY "addresses_update_own"
     ON public.addresses FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "addresses_delete_own" ON public.addresses;
 CREATE POLICY "addresses_delete_own"
     ON public.addresses FOR DELETE
     USING (auth.uid() = user_id);
@@ -172,19 +190,23 @@ CREATE POLICY "addresses_delete_own"
 -- 9. CART ITEMS RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Customers manage only their own cart
+DROP POLICY IF EXISTS "cart_items_select_own" ON public.cart_items;
 CREATE POLICY "cart_items_select_own"
     ON public.cart_items FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cart_items_insert_own" ON public.cart_items;
 CREATE POLICY "cart_items_insert_own"
     ON public.cart_items FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cart_items_update_own" ON public.cart_items;
 CREATE POLICY "cart_items_update_own"
     ON public.cart_items FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "cart_items_delete_own" ON public.cart_items;
 CREATE POLICY "cart_items_delete_own"
     ON public.cart_items FOR DELETE
     USING (auth.uid() = user_id);
@@ -193,14 +215,17 @@ CREATE POLICY "cart_items_delete_own"
 -- 10. WISHLIST ITEMS RLS POLICIES
 -- -----------------------------------------------------------------------------
 -- Customers manage only their own wishlist
+DROP POLICY IF EXISTS "wishlist_items_select_own" ON public.wishlist_items;
 CREATE POLICY "wishlist_items_select_own"
     ON public.wishlist_items FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "wishlist_items_insert_own" ON public.wishlist_items;
 CREATE POLICY "wishlist_items_insert_own"
     ON public.wishlist_items FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "wishlist_items_delete_own" ON public.wishlist_items;
 CREATE POLICY "wishlist_items_delete_own"
     ON public.wishlist_items FOR DELETE
     USING (auth.uid() = user_id);
@@ -234,20 +259,24 @@ VALUES ('product-images', 'product-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Public can view product images
+DROP POLICY IF EXISTS "product_images_bucket_public_select" ON storage.objects;
 CREATE POLICY "product_images_bucket_public_select"
     ON storage.objects FOR SELECT
     USING (bucket_id = 'product-images');
 
 -- Only admins can upload, update, and delete in product-images bucket
+DROP POLICY IF EXISTS "product_images_bucket_admin_insert" ON storage.objects;
 CREATE POLICY "product_images_bucket_admin_insert"
     ON storage.objects FOR INSERT
     WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
 
+DROP POLICY IF EXISTS "product_images_bucket_admin_update" ON storage.objects;
 CREATE POLICY "product_images_bucket_admin_update"
     ON storage.objects FOR UPDATE
     USING (bucket_id = 'product-images' AND public.is_admin())
     WITH CHECK (bucket_id = 'product-images' AND public.is_admin());
 
+DROP POLICY IF EXISTS "product_images_bucket_admin_delete" ON storage.objects;
 CREATE POLICY "product_images_bucket_admin_delete"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'product-images' AND public.is_admin());
@@ -260,19 +289,23 @@ VALUES ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Public can view avatars
+DROP POLICY IF EXISTS "avatars_bucket_public_select" ON storage.objects;
 CREATE POLICY "avatars_bucket_public_select"
     ON storage.objects FOR SELECT
     USING (bucket_id = 'avatars');
 
 -- Users can upload/update/delete their own avatars
+DROP POLICY IF EXISTS "avatars_bucket_user_insert" ON storage.objects;
 CREATE POLICY "avatars_bucket_user_insert"
     ON storage.objects FOR INSERT
     WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
 
+DROP POLICY IF EXISTS "avatars_bucket_user_update" ON storage.objects;
 CREATE POLICY "avatars_bucket_user_update"
     ON storage.objects FOR UPDATE
     USING (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
 
+DROP POLICY IF EXISTS "avatars_bucket_user_delete" ON storage.objects;
 CREATE POLICY "avatars_bucket_user_delete"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);

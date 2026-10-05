@@ -21,3 +21,10 @@ Enforcing these limits is critical to preventing brute-force enumeration against
   - `X-Frame-Options: DENY`
   - `Referrer-Policy: strict-origin-when-cross-origin`
   - `Content-Security-Policy: default-src 'self'; img-src 'self' https:; connect-src 'self' https://*.supabase.co`
+
+## Database Recovery (WAL/PITR)
+
+To guarantee no data loss during catastrophic failures:
+1. Ensure **Point-in-Time Recovery (PITR)** is enabled in the Supabase Dashboard -> Database -> Backups.
+2. Verify that **WAL (Write-Ahead Logging)** is capturing critical tables (Orders, Payments, Inventory Ledger).
+3. Schedule quarterly test-restores of the database to a staging environment to verify backup integrity.

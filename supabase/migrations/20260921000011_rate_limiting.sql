@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS public.api_rate_limits (
     UNIQUE(user_id, action, window_start)
 );
 
+ALTER TABLE public.api_rate_limits ENABLE ROW LEVEL SECURITY;
+
 CREATE OR REPLACE FUNCTION public.check_rate_limit(
     p_action TEXT,
     p_max INT,

@@ -247,7 +247,7 @@ BEGIN
         'updated_at', v_updated.updated_at
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 5. RPC: PUBLISH OUTBOX EVENT (TRANSACTIONAL OUTBOX)
@@ -283,7 +283,7 @@ BEGIN
 
     RETURN v_event_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 6. RPC: PROCESS OUTBOX BATCH (IDEMPOTENT EVENT DISPATCHER)
@@ -332,7 +332,7 @@ BEGIN
         'timestamp', now()
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 7. RPC: ALLOCATE LOCATION INVENTORY
@@ -400,4 +400,4 @@ BEGIN
         'product_id', p_product_id
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;

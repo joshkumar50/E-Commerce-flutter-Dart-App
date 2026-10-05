@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:opem/core/design_tokens.dart';
@@ -19,6 +20,7 @@ import 'package:opem/widgets/category_chip.dart';
 import 'package:opem/widgets/deals_banner.dart';
 import 'package:opem/widgets/product_card.dart';
 import 'package:opem/widgets/search_bar_widget.dart';
+import 'package:opem/widgets/ui/app_animations.dart';
 import 'package:opem/widgets/ui/empty_state_view.dart';
 import 'package:opem/widgets/ui/error_state_view.dart';
 import 'package:opem/widgets/ui/floating_cart_bar.dart';
@@ -84,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   padding: const EdgeInsets.all(AppSpacing.sm),
                                   decoration: BoxDecoration(
                                     color: AppColors.primarySoft,
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                   ),
                                   child: const Icon(
                                     Icons.flash_on_rounded,
@@ -95,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(width: AppSpacing.sm),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -118,14 +122,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       StreamBuilder<List<Address>>(
                                         stream: user.id != null
-                                            ? addressService.watchAddresses(user.id!)
+                                            ? addressService
+                                                .watchAddresses(user.id!)
                                             : const Stream.empty(),
                                         builder: (context, addrSnap) {
                                           final addresses = addrSnap.data ?? [];
-                                          final defaultAddr = addresses.where((a) => a.isDefault).firstOrNull ??
+                                          final defaultAddr = addresses
+                                                  .where((a) => a.isDefault)
+                                                  .firstOrNull ??
                                               addresses.firstOrNull;
 
-                                          final locationTitle = defaultAddr != null
+                                          final locationTitle = defaultAddr !=
+                                                  null
                                               ? '${user.name.isNotEmpty ? "${user.name.split(' ').first} • " : ""}${defaultAddr.label.isNotEmpty ? defaultAddr.label : defaultAddr.addressLine1}'
                                               : (user.name.isNotEmpty
                                                   ? '${user.name.split(' ').first} • Add Address'
@@ -223,7 +231,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                 // ─── Promotional Deals Banner (Feature Flag Controlled) ──────────
-                if (RemoteConfigService.instance.isFeatureEnabled('deals_banner', defaultValue: true))
+                if (RemoteConfigService.instance
+                    .isFeatureEnabled('deals_banner', defaultValue: true))
                   const SliverToBoxAdapter(
                     child: DealsBanner(),
                   ),
@@ -264,12 +273,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 44,
                             child: ListView(
                               scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md),
                               children: [
                                 CategoryChipWidget(
                                   label: 'All Items',
                                   isSelected: _selectedCategoryId == null,
-                                  onTap: () => setState(() => _selectedCategoryId = null),
+                                  onTap: () => setState(
+                                      () => _selectedCategoryId = null),
                                 ),
                                 ...categories.map(
                                   (cat) => CategoryChipWidget(
@@ -278,7 +289,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     isSelected: _selectedCategoryId == cat.id,
                                     onTap: () {
                                       setState(() {
-                                        _selectedCategoryId = _selectedCategoryId == cat.id ? null : cat.id;
+                                        _selectedCategoryId =
+                                            _selectedCategoryId == cat.id
+                                                ? null
+                                                : cat.id;
                                       });
                                     },
                                   ),
@@ -303,11 +317,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.bolt_rounded, color: AppColors.accent, size: 22),
+                        const Icon(Icons.bolt_rounded,
+                            color: AppColors.accent, size: 22),
                         const SizedBox(width: AppSpacing.xxs),
                         Text(
-                          _selectedCategoryId != null ? 'Filtered Products' : 'Fresh Picks for You',
-                          style: const TextStyle(
+                          _selectedCategoryId != null
+                              ? 'Filtered Products'
+                              : 'Fresh Picks for You',
+                          style: GoogleFonts.outfit(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
@@ -333,7 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           AppSpacing.xxl,
                         ),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             childAspectRatio: 0.64,
                             crossAxisSpacing: AppSpacing.md,
@@ -350,7 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (snapshot.hasError) {
                       return SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xxl),
                           child: ErrorStateView(
                             title: 'Unable to load products',
                             message: '${snapshot.error}',
@@ -362,17 +381,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     var products = snapshot.data ?? [];
                     if (_selectedCategoryId != null) {
-                      products = products.where((p) => p.categoryId == _selectedCategoryId).toList();
+                      products = products
+                          .where((p) => p.categoryId == _selectedCategoryId)
+                          .toList();
                     }
 
                     if (products.isEmpty) {
                       return const SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+                          padding:
+                              EdgeInsets.symmetric(vertical: AppSpacing.xxl),
                           child: EmptyStateView(
                             icon: Icons.inventory_2_outlined,
                             title: 'No products found',
-                            message: 'Try selecting another category or check back soon.',
+                            message:
+                                'Try selecting another category or check back soon.',
                           ),
                         ),
                       );
@@ -386,14 +409,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         80, // Space for bottom floating cart
                       ),
                       sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           childAspectRatio: 0.64,
                           crossAxisSpacing: AppSpacing.md,
                           mainAxisSpacing: AppSpacing.md,
                         ),
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) => ProductCard(product: products[index]),
+                          (context, index) => StaggeredEntrance(
+                            index: index,
+                            scope: 'home-products',
+                            child: ProductCard(product: products[index]),
+                          ),
                           childCount: products.length,
                         ),
                       ),

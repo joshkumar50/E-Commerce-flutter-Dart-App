@@ -29,8 +29,8 @@ class AnimatedQuantityStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: AppMotion.normal,
-      switchInCurve: AppMotion.standard,
-      switchOutCurve: AppMotion.standard,
+      switchInCurve: AppMotion.emphasized,
+      switchOutCurve: AppMotion.accelerate,
       transitionBuilder: (child, animation) {
         return ScaleTransition(
           scale: animation,
@@ -109,6 +109,8 @@ class AnimatedQuantityStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: AnimatedSwitcher(
               duration: AppMotion.fast,
+              switchInCurve: AppMotion.decelerate,
+              switchOutCurve: AppMotion.accelerate,
               transitionBuilder: (child, animation) {
                 return SlideTransition(
                   position: Tween<Offset>(

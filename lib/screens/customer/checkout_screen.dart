@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:opem/widgets/ui/animated_primary_button.dart';
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opem/core/router.dart';
 import 'package:opem/core/theme.dart';
@@ -37,7 +40,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _idempotencyKey = _uuid.v4();
     _loadAddresses();
     // Non-blocking business funnel telemetry
-    AnalyticsService.instance.trackCheckoutStarted(totalAmount: 0.0, itemCount: 0);
+    AnalyticsService.instance
+        .trackCheckoutStarted(totalAmount: 0.0, itemCount: 0);
   }
 
   @override
@@ -54,7 +58,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final list = await addressService.fetchAddresses(userId);
       if (mounted) {
         setState(() {
-          _selectedAddress = list.where((a) => a.isDefault).firstOrNull ?? list.firstOrNull;
+          _selectedAddress =
+              list.where((a) => a.isDefault).firstOrNull ?? list.firstOrNull;
           _isLoadingAddresses = false;
         });
       }
@@ -70,7 +75,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (RemoteConfigService.instance.isCheckoutDisabled) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Checkout is temporarily paused by operations for maintenance. Please check back shortly.'),
+          content: Text(
+              'Checkout is temporarily paused by operations for maintenance. Please check back shortly.'),
           backgroundColor: AppColors.saleRed,
         ),
       );
@@ -119,7 +125,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final orderId = checkoutResult['order_id'] as String;
       final orderNumber = checkoutResult['order_number'] as String;
       final grandTotal = (checkoutResult['grand_total'] as num).toDouble();
-      final providerOrderId = checkoutResult['provider_order_id'] as String? ?? 'rzp_demo';
+      final providerOrderId =
+          checkoutResult['provider_order_id'] as String? ?? 'rzp_demo';
 
       if (!mounted) return;
 
@@ -157,7 +164,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       method: 'upi',
     );
 
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
       isDismissible: false,
       enableDrag: false,
@@ -199,7 +206,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           const SizedBox(width: 10),
                           const Text(
                             'Payment Gateway',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
@@ -211,12 +219,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             // Safe recovery: release reserved stock upon user cancellation
                             await checkoutService.handlePaymentFailure(
                               orderId: orderId,
-                              reason: 'Payment cancelled by user at gateway sheet',
+                              reason:
+                                  'Payment cancelled by user at gateway sheet',
                             );
                             if (mounted) {
                               setState(() => _isSubmitting = false);
                               scaffoldMessenger.showSnackBar(
-                                const SnackBar(content: Text('Payment cancelled. Reserved items released.')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Payment cancelled. Reserved items released.')),
                               );
                             }
                           },
@@ -238,12 +249,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           children: [
                             Text(
                               orderNumber,
-                              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppColors.textSecondary),
                             ),
                             const SizedBox(height: 4),
                             const Text(
                               'Authoritative Grand Total',
-                              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                              style: TextStyle(
+                                  fontSize: 12, color: AppColors.textMuted),
                             ),
                           ],
                         ),
@@ -265,23 +278,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: 10),
                   ListTile(
-                    leading: const Icon(Icons.account_balance_wallet, color: AppColors.primary),
+                    leading: const Icon(Icons.account_balance_wallet,
+                        color: AppColors.primary),
                     title: const Text('UPI (Google Pay / PhonePe / Paytm)'),
                     subtitle: const Text('Fastest instant bank transfer'),
                     tileColor: AppColors.background,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    trailing: const Icon(Icons.check_circle, color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    trailing: const Icon(Icons.check_circle,
+                        color: AppColors.primary),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(
+                  AnimatedPrimaryButton(
+                    label: 'Pay ₹${grandTotal.toStringAsFixed(2)}',
+                    leadingIcon: Icons.payment_rounded,
+                    isLoading: isVerifying,
+                    height: 54,
                     onPressed: isVerifying
                         ? null
                         : () async {
                             setSheetState(() => isVerifying = true);
                             try {
-                              // Simulate payment provider success callback & server signature verification
-                              final fakePaymentId = 'pay_${_uuid.v4().replaceAll('-', '').substring(0, 14)}';
-                              final fakeSignature = 'sig_${_uuid.v4().replaceAll('-', '').substring(0, 14)}';
+                              final fakePaymentId =
+                                  'pay_${_uuid.v4().replaceAll('-', '').substring(0, 14)}';
+                              final fakeSignature =
+                                  'sig_${_uuid.v4().replaceAll('-', '').substring(0, 14)}';
 
                               await checkoutService.verifyPayment(
                                 orderId: orderId,
@@ -295,18 +316,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 Navigator.pop(sheetContext);
                               }
 
-                              // Clear local cart provider
                               final itemCount = cartProvider.items.length;
                               cartProvider.clearCart();
 
-                              // Business funnel telemetry: order completed
                               AnalyticsService.instance.trackOrderCreated(
                                 orderId: orderId,
                                 totalAmount: grandTotal,
                                 itemCount: itemCount,
                               );
 
-                              // Navigate to Payment Result Screen
                               router.go(
                                 Routes.paymentResult,
                                 extra: {
@@ -323,27 +341,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 SnackBar(
                                   content: Text('Payment verification failed: $e'),
                                   backgroundColor: AppColors.saleRed,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  margin: const EdgeInsets.all(16),
                                 ),
                               );
                             }
                           },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: isVerifying
-                        ? const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              ),
-                              SizedBox(width: 12),
-                              Text('Verifying with Bank Server...'),
-                            ],
-                          )
-                        : Text('Pay ₹${grandTotal.toStringAsFixed(2)}'),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -366,9 +371,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: Text(
+          'Checkout',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 18),
+        ),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: _isSubmitting ? null : () => context.pop(),
         ),
       ),
@@ -377,9 +388,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.shopping_cart_outlined, size: 64, color: AppColors.textMuted),
+                  const Icon(Icons.shopping_cart_outlined,
+                      size: 64, color: AppColors.textMuted),
                   const SizedBox(height: 16),
-                  const Text('Your cart is empty', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Your cart is empty',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.go(Routes.home),
@@ -393,20 +407,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 if (_errorMessage != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.saleRedLight,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.saleRed.withValues(alpha: 0.3)),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: AppColors.saleRed.withValues(alpha: 0.35)),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.error_outline, color: AppColors.saleRed),
+                        const Icon(Icons.error_outline,
+                            color: AppColors.saleRed, size: 20),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: const TextStyle(color: AppColors.saleRed, fontSize: 13, fontWeight: FontWeight.w600),
+                            style: GoogleFonts.inter(
+                                color: AppColors.saleRed,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -431,11 +451,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                              Icon(Icons.location_on,
+                                  color: AppColors.primary, size: 20),
                               SizedBox(width: 8),
                               Text(
                                 'Delivery Address',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                             ],
                           ),
@@ -454,22 +476,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       else if (_selectedAddress != null) ...[
                         Text(
                           _selectedAddress!.fullName,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${_selectedAddress!.addressLine1}${_selectedAddress!.addressLine2.isNotEmpty ? ', ${_selectedAddress!.addressLine2}' : ''}, ${_selectedAddress!.city}, ${_selectedAddress!.state} - ${_selectedAddress!.postalCode}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                          style: const TextStyle(
+                              color: AppColors.textSecondary, fontSize: 13),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Phone: ${_selectedAddress!.phone}',
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                          style: const TextStyle(
+                              color: AppColors.textMuted, fontSize: 12),
                         ),
                       ] else ...[
                         const Text(
                           'No address selected. Please add an address to deliver.',
-                          style: TextStyle(color: AppColors.saleRed, fontSize: 13),
+                          style:
+                              TextStyle(color: AppColors.saleRed, fontSize: 13),
                         ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
@@ -503,7 +529,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Text(
                             'Items (${cart.totalQuantity})',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                           TextButton(
                             onPressed: () => context.pop(),
@@ -516,7 +543,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         final prod = item.product;
                         final name = prod?.name ?? 'Grocery Item';
                         final unit = prod?.unit ?? 'item';
-                        final effectivePrice = prod?.effectivePrice ?? (prod?.salePrice ?? prod?.price ?? 0.0);
+                        final effectivePrice = prod?.effectivePrice ??
+                            (prod?.salePrice ?? prod?.price ?? 0.0);
                         final imageUrl = prod?.imageUrl ?? '';
 
                         return Padding(
@@ -535,14 +563,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                           width: 44,
                                           height: 44,
                                           color: AppColors.surfaceMuted,
-                                          child: const Icon(Icons.local_grocery_store, size: 20),
+                                          child: const Icon(
+                                              Icons.local_grocery_store,
+                                              size: 20),
                                         ),
                                       )
                                     : Container(
                                         width: 44,
                                         height: 44,
                                         color: AppColors.surfaceMuted,
-                                        child: const Icon(Icons.local_grocery_store, size: 20),
+                                        child: const Icon(
+                                            Icons.local_grocery_store,
+                                            size: 20),
                                       ),
                               ),
                               const SizedBox(width: 12),
@@ -552,20 +584,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   children: [
                                     Text(
                                       name,
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Text(
                                       '${item.quantity} x ₹${effectivePrice.toStringAsFixed(2)} • $unit',
-                                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textSecondary),
                                     ),
                                   ],
                                 ),
                               ),
                               Text(
                                 '₹${(effectivePrice * item.quantity).toStringAsFixed(2)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                             ],
                           ),
@@ -590,15 +627,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       const Text(
                         'Delivery Instructions (Optional)',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _notesController,
                         decoration: const InputDecoration(
-                          hintText: 'e.g. Leave package at front door, ring doorbell',
+                          hintText:
+                              'e.g. Leave package at front door, ring doorbell',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
                         ),
                         maxLines: 2,
                       ),
@@ -621,27 +661,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       const Text(
                         'Bill Details',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Item Subtotal', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                          Text('₹${subtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                          const Text('Item Subtotal',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13)),
+                          Text('₹${subtotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 13)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Delivery Fee', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          const Text('Delivery Fee',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13)),
                           Text(
-                            deliveryFee == 0.0 ? 'FREE' : '₹${deliveryFee.toStringAsFixed(2)}',
+                            deliveryFee == 0.0
+                                ? 'FREE'
+                                : '₹${deliveryFee.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
-                              color: deliveryFee == 0.0 ? AppColors.primary : AppColors.textPrimary,
+                              color: deliveryFee == 0.0
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -650,8 +703,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('GST / Taxes (5%)', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                          Text('₹${tax.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                          const Text('GST / Taxes (5%)',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13)),
+                          Text('₹${tax.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 13)),
                         ],
                       ),
                       const Divider(height: 24, color: AppColors.border),
@@ -660,7 +718,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           const Text(
                             'Grand Total',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Text(
                             '₹${estimatedTotal.toStringAsFixed(2)}',
@@ -679,39 +738,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 24),
 
                 // ─── 5. Place Order Action (Double-Tap & Retry Protected) ────
-                ElevatedButton(
+                AnimatedPrimaryButton(
+                  label: 'Place Order & Pay • ₹${estimatedTotal.toStringAsFixed(2)}',
+                  leadingIcon: Icons.shopping_bag_outlined,
+                  isLoading: _isSubmitting,
                   onPressed: _isSubmitting ? null : () => _handlePlaceOrder(cart),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isSubmitting
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Reserving Stock & Connecting...'),
-                          ],
-                        )
-                      : Text(
-                          'Place Order & Pay • ₹${estimatedTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                  height: 56,
                 ),
 
                 const SizedBox(height: 12),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.shield_outlined, size: 16, color: AppColors.textMuted),
-                    SizedBox(width: 6),
+                    const Icon(Icons.shield_outlined,
+                        size: 14, color: AppColors.textMuted),
+                    const SizedBox(width: 5),
                     Text(
                       'Server-authoritative 256-bit encrypted transaction',
-                      style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      style: GoogleFonts.inter(
+                          fontSize: 11, color: AppColors.textMuted),
                     ),
                   ],
                 ),

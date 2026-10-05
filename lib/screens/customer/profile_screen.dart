@@ -49,7 +49,8 @@ class ProfileScreen extends StatelessWidget {
                       ? NetworkImage(avatarUrl)
                       : null,
                   child: (avatarUrl == null || avatarUrl.isEmpty)
-                      ? const Icon(Icons.person_rounded, size: 36, color: AppColors.primary)
+                      ? const Icon(Icons.person_rounded,
+                          size: 36, color: AppColors.primary)
                       : null,
                 ),
                 const SizedBox(width: AppSpacing.md),
@@ -130,21 +131,24 @@ class ProfileScreen extends StatelessWidget {
                   subtitle: 'Track order status and purchase history',
                   onTap: () => context.push(Routes.orders),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
                   icon: Icons.location_on_outlined,
                   title: 'Delivery Addresses',
                   subtitle: 'Manage saved delivery addresses',
                   onTap: () => context.push(Routes.addresses),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
                   icon: Icons.favorite_border_rounded,
                   title: 'My Wishlist',
                   subtitle: 'Saved organic groceries and favorites',
                   onTap: () => context.push(Routes.wishlist),
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
                   icon: Icons.help_outline_rounded,
                   title: 'Help & Customer Care',
@@ -155,12 +159,14 @@ class ProfileScreen extends StatelessWidget {
                       applicationName: 'B-Buys Fresh Grocery',
                       applicationVersion: 'v2.0 (Premium)',
                       children: const [
-                        Text('B-Buys Grocery delivers high-quality, farm-fresh produce and daily essentials.'),
+                        Text(
+                            'B-Buys Grocery delivers high-quality, farm-fresh produce and daily essentials.'),
                       ],
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderLight),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.borderLight),
                 _ProfileMenuItem(
                   icon: Icons.system_update_rounded,
                   title: 'Check for Updates',

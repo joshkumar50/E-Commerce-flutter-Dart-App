@@ -12,8 +12,10 @@ class PaymentResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isSuccess = (result['success'] as bool?) ?? false;
     final String orderId = (result['order_id'] ?? '') as String;
-    final String orderNumber = (result['order_number'] ?? 'ORD-UNKNOWN') as String;
-    final double grandTotal = (result['grand_total'] as num?)?.toDouble() ?? 0.0;
+    final String orderNumber =
+        (result['order_number'] ?? 'ORD-UNKNOWN') as String;
+    final double grandTotal =
+        (result['grand_total'] as num?)?.toDouble() ?? 0.0;
     final String paymentId = (result['payment_id'] ?? '') as String;
 
     return Scaffold(
@@ -47,7 +49,8 @@ class PaymentResultScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 isSuccess ? 'Payment Successful!' : 'Payment Failed',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -55,7 +58,8 @@ class PaymentResultScreen extends StatelessWidget {
                     ? 'Your grocery order has been confirmed and placed with the store.'
                     : 'We could not verify your payment. Reserved inventory has been safely restored.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 14),
               ),
               const SizedBox(height: 24),
 
@@ -71,9 +75,13 @@ class PaymentResultScreen extends StatelessWidget {
                   children: [
                     _DetailRow(title: 'Order Number', value: orderNumber),
                     const Divider(height: 16, color: AppColors.borderLight),
-                    _DetailRow(title: 'Payment Status', value: isSuccess ? 'Captured' : 'Failed'),
+                    _DetailRow(
+                        title: 'Payment Status',
+                        value: isSuccess ? 'Captured' : 'Failed'),
                     const Divider(height: 16, color: AppColors.borderLight),
-                    _DetailRow(title: 'Transaction Reference', value: paymentId.isNotEmpty ? paymentId : 'N/A'),
+                    _DetailRow(
+                        title: 'Transaction Reference',
+                        value: paymentId.isNotEmpty ? paymentId : 'N/A'),
                     const Divider(height: 16, color: AppColors.borderLight),
                     _DetailRow(
                       title: 'Grand Total Paid',
@@ -129,7 +137,9 @@ class _DetailRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        Text(title,
+            style:
+                const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         Text(
           value,
           style: TextStyle(

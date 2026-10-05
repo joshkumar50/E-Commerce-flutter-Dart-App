@@ -13,20 +13,29 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppEnvironment.validate();
+  try {
+    AppEnvironment.validate();
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+      throw StateError(
+        'FATAL: Supabase configuration is missing. The app requires a valid SUPABASE_URL and SUPABASE_ANON_KEY to operate online.',
+      );
+    }
+  } catch (e) {
+    runApp(ConfigurationErrorScreen(error: e.toString()));
+    return;
+  }
 
   _configLoading();
 
-  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
-    throw StateError(
-      'FATAL: Supabase configuration is missing. The app requires a valid SUPABASE_URL and SUPABASE_ANON_KEY to operate online.',
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: supabaseAnonKey,
     );
+  } catch (e) {
+    runApp(ConfigurationErrorScreen(error: 'Database Initialization Error: $e'));
+    return;
   }
-
-  await Supabase.initialize(
-    url: supabaseUrl,
-    publishableKey: supabaseAnonKey,
-  );
 
   // Phase 8 Operations & Telemetry initialization
   AnalyticsService.instance.init();
@@ -65,6 +74,45 @@ class BBuysApp extends StatelessWidget {
       routerConfig: appRouter,
       builder: EasyLoading.init(),
       theme: AppTheme.lightTheme,
+    );
+  }
+}
+
+class ConfigurationErrorScreen extends StatelessWidget {
+  final String error;
+  const ConfigurationErrorScreen({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.red[50],
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 64),
+                const SizedBox(height: 24),
+                const Text(
+                  'Configuration Error',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  error,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

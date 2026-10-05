@@ -200,7 +200,7 @@ BEGIN
 
     RETURN v_log_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 5. RPC: AUTOMATED DATA QUALITY HEALTH CHECK
@@ -296,7 +296,7 @@ BEGIN
         )
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 6. RPC: BUSINESS FUNNEL METRICS
@@ -374,7 +374,7 @@ BEGIN
         )
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 7. RPC: AGGREGATED ADMIN DASHBOARD METRICS
@@ -484,7 +484,7 @@ BEGIN
         )
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 8. RPC: BOUNDED TELEMETRY RETENTION CLEANUP
@@ -518,4 +518,4 @@ BEGIN
     GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
     RETURN v_deleted_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;

@@ -1,17 +1,32 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'design_tokens.dart';
+import 'google_text_theme.dart';
 
 export 'design_tokens.dart';
 
 /// Centralized Design System and Theme for B-Buys Grocery Platform.
 class AppTheme {
   static ThemeData get lightTheme {
-    final textTheme = GoogleFonts.interTextTheme();
+    final textTheme = interTextTheme();
 
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AppColors.background,
+      // Modern, consistent page transitions: a soft fade-and-slide-forward
+      // motion on Android/desktop/web (replacing the abrupt fade-through),
+      // and the platform-standard vertical slide on iOS/Cupertino.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: Colors.white,
@@ -100,7 +115,8 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           shadowColor: Colors.transparent,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl, vertical: AppSpacing.md),
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.r12,
           ),
@@ -115,7 +131,8 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.r12,
           ),
@@ -137,7 +154,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceMuted,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         border: OutlineInputBorder(
           borderRadius: AppRadius.r12,
           borderSide: BorderSide.none,
@@ -194,6 +212,9 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
+      // Theme-wide polish: modern ink sparkle for Material touches across the
+      // app (buttons, list tiles), replacing the plain fade ripple.
+      splashFactory: InkSparkle.splashFactory,
     );
   }
 }

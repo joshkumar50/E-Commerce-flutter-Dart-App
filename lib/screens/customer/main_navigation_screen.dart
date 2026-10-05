@@ -7,6 +7,7 @@ import 'package:opem/screens/customer/home_screen.dart';
 import 'package:opem/screens/customer/profile_screen.dart';
 import 'package:opem/screens/customer/wishlist_screen.dart';
 import 'package:opem/services/app_update_service.dart';
+import 'package:opem/widgets/ui/app_animations.dart';
 import 'package:provider/provider.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -50,7 +51,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final cartQuantity = context.watch<CartProvider>().totalQuantity;
 
     return Scaffold(
-      body: IndexedStack(
+      // All five tabs stay mounted for their whole lifetime — the same state
+      // and scroll preservation as the bare IndexedStack this replaced.
+      // TabCrossFade only animates the fade/rise between them.
+      body: TabCrossFade(
         index: _currentIndex,
         children: _screens,
       ),
@@ -90,7 +94,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 isLabelVisible: cartQuantity > 0,
                 label: Text(
                   '$cartQuantity',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 10),
                 ),
                 backgroundColor: AppColors.primary,
                 child: const Icon(Icons.shopping_bag_outlined),
@@ -99,7 +104,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 isLabelVisible: cartQuantity > 0,
                 label: Text(
                   '$cartQuantity',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 10),
                 ),
                 backgroundColor: AppColors.primary,
                 child: const Icon(Icons.shopping_bag, color: AppColors.primary),

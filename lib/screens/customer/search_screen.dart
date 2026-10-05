@@ -4,6 +4,7 @@ import 'package:opem/core/design_tokens.dart';
 import 'package:opem/models/product.dart';
 import 'package:opem/services/product_service.dart';
 import 'package:opem/widgets/product_card.dart';
+import 'package:opem/widgets/ui/app_animations.dart';
 import 'package:opem/widgets/ui/empty_state_view.dart';
 import 'package:opem/widgets/ui/floating_cart_bar.dart';
 import 'package:opem/widgets/ui/pressable_scale.dart';
@@ -104,11 +105,14 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               decoration: InputDecoration(
                 hintText: 'Search fresh groceries…',
-                hintStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted),
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
+                hintStyle:
+                    const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                prefixIcon: const Icon(Icons.search_rounded,
+                    color: AppColors.textSecondary, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
+                        icon: const Icon(Icons.close_rounded,
+                            size: 18, color: AppColors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           _onSearchChanged('');
@@ -116,7 +120,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     : null,
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: 12),
               ),
             ),
           ),
@@ -147,7 +152,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
@@ -199,21 +205,24 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: _isLoading
                     ? GridView.builder(
                         padding: const EdgeInsets.all(AppSpacing.md),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           childAspectRatio: 0.64,
                           crossAxisSpacing: AppSpacing.md,
                           mainAxisSpacing: AppSpacing.md,
                         ),
                         itemCount: 4,
-                        itemBuilder: (context, index) => const ProductCardSkeleton(),
+                        itemBuilder: (context, index) =>
+                            const ProductCardSkeleton(),
                       )
                     : _hasSearched
                         ? _results.isEmpty
                             ? EmptyStateView(
                                 icon: Icons.search_off_rounded,
                                 title: 'No groceries found',
-                                message: 'We couldn\'t find anything matching "${_searchController.text}". Try searching for bread, milk, or fresh produce.',
+                                message:
+                                    'We couldn\'t find anything matching "${_searchController.text}". Try searching for bread, milk, or fresh produce.',
                               )
                             : GridView.builder(
                                 padding: const EdgeInsets.fromLTRB(
@@ -222,14 +231,20 @@ class _SearchScreenState extends State<SearchScreen> {
                                   AppSpacing.md,
                                   80, // Space for floating cart
                                 ),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   childAspectRatio: 0.64,
                                   crossAxisSpacing: AppSpacing.md,
                                   mainAxisSpacing: AppSpacing.md,
                                 ),
                                 itemCount: _results.length,
-                                itemBuilder: (context, index) => ProductCard(product: _results[index]),
+                                itemBuilder: (context, index) =>
+                                    StaggeredEntrance(
+                                  index: index,
+                                  scope: 'search-results',
+                                  child: ProductCard(product: _results[index]),
+                                ),
                               )
                         : const SizedBox.shrink(),
               ),

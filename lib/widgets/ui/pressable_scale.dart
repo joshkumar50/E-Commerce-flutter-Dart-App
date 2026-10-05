@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opem/core/design_tokens.dart';
 
 /// Tactile press scale micro-interaction wrapper.
 /// Compresses slightly on press down and springs back smoothly on release.
@@ -16,7 +17,7 @@ class PressableScale extends StatefulWidget {
     required this.child,
     this.onTap,
     this.scaleFactor = 0.96,
-    this.duration = const Duration(milliseconds: 100),
+    this.duration = AppMotion.instant,
     this.enableHaptic = true,
     this.behavior = HitTestBehavior.opaque,
   });
@@ -25,7 +26,8 @@ class PressableScale extends StatefulWidget {
   State<PressableScale> createState() => _PressableScaleState();
 }
 
-class _PressableScaleState extends State<PressableScale> with SingleTickerProviderStateMixin {
+class _PressableScaleState extends State<PressableScale>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -37,8 +39,13 @@ class _PressableScaleState extends State<PressableScale> with SingleTickerProvid
       duration: widget.duration,
       reverseDuration: widget.duration,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleFactor).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _scaleAnimation =
+        Tween<double>(begin: 1.0, end: widget.scaleFactor).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: AppMotion.interaction, // easeOut on the way down…
+        reverseCurve: AppMotion.emphasized, // …gentle overshoot springing back
+      ),
     );
   }
 

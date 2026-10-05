@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:opem/core/design_tokens.dart';
 import 'package:opem/models/address.dart';
@@ -30,12 +31,13 @@ class _AddressesScreenState extends State<AddressesScreen> {
     final line1Ctrl = TextEditingController(text: existing?.addressLine1 ?? '');
     final line2Ctrl = TextEditingController(text: existing?.addressLine2 ?? '');
     final cityCtrl = TextEditingController(text: existing?.city ?? 'Bengaluru');
-    final stateCtrl = TextEditingController(text: existing?.state ?? 'Karnataka');
+    final stateCtrl =
+        TextEditingController(text: existing?.state ?? 'Karnataka');
     final postalCtrl = TextEditingController(text: existing?.postalCode ?? '');
     String label = existing?.label ?? 'Home';
     bool isDefault = existing?.isDefault ?? false;
 
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
@@ -77,26 +79,36 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Contact Name'),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter contact name' : null,
+                    decoration:
+                        const InputDecoration(labelText: 'Contact Name'),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Enter contact name'
+                        : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'Phone Number'),
-                    validator: (v) => (v == null || v.trim().length < 8) ? 'Enter valid phone number' : null,
+                    decoration:
+                        const InputDecoration(labelText: 'Phone Number'),
+                    validator: (v) => (v == null || v.trim().length < 8)
+                        ? 'Enter valid phone number'
+                        : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: line1Ctrl,
-                    decoration: const InputDecoration(labelText: 'Flat / House / Building / Street'),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter address' : null,
+                    decoration: const InputDecoration(
+                        labelText: 'Flat / House / Building / Street'),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Enter address'
+                        : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: line2Ctrl,
-                    decoration: const InputDecoration(labelText: 'Area / Landmark (Optional)'),
+                    decoration: const InputDecoration(
+                        labelText: 'Area / Landmark (Optional)'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
@@ -105,7 +117,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         child: TextFormField(
                           controller: cityCtrl,
                           decoration: const InputDecoration(labelText: 'City'),
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Required'
+                              : null,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
@@ -113,8 +127,11 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         child: TextFormField(
                           controller: postalCtrl,
                           keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Postal Code'),
-                          validator: (v) => (v == null || v.trim().length < 4) ? 'Required' : null,
+                          decoration:
+                              const InputDecoration(labelText: 'Postal Code'),
+                          validator: (v) => (v == null || v.trim().length < 4)
+                              ? 'Required'
+                              : null,
                         ),
                       ),
                     ],
@@ -127,7 +144,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           Checkbox(
                             value: isDefault,
                             activeColor: AppColors.primary,
-                            onChanged: (v) => setSheetState(() => isDefault = v ?? false),
+                            onChanged: (v) =>
+                                setSheetState(() => isDefault = v ?? false),
                           ),
                           const Text(
                             'Set as default delivery address',
@@ -149,7 +167,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         if (!formKey.currentState!.validate()) return;
 
                         final newAddr = Address(
-                          id: existing?.id ?? 'addr-${DateTime.now().millisecondsSinceEpoch}',
+                          id: existing?.id ??
+                              'addr-${DateTime.now().millisecondsSinceEpoch}',
                           userId: _userId,
                           label: label,
                           fullName: nameCtrl.text.trim(),
@@ -173,11 +192,13 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           if (context.mounted) Navigator.pop(context);
                           setState(() {});
                         } catch (e) {
-                          EasyLoading.showError('Failed to save address: ${e.toString()}');
+                          EasyLoading.showError(
+                              'Failed to save address: ${e.toString()}');
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -232,7 +253,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
             return EmptyStateView(
               icon: Icons.location_off_outlined,
               title: 'No saved addresses',
-              message: 'Add your delivery address for fast 10-15 minute grocery delivery.',
+              message:
+                  'Add your delivery address for fast 10-15 minute grocery delivery.',
               actionLabel: 'Add Address',
               onAction: () => _showAddAddressSheet(),
             );
@@ -250,7 +272,9 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                   border: Border.all(
-                    color: addr.isDefault ? AppColors.primary : AppColors.borderLight,
+                    color: addr.isDefault
+                        ? AppColors.primary
+                        : AppColors.borderLight,
                     width: addr.isDefault ? 1.5 : 1,
                   ),
                   boxShadow: AppShadows.subtle,
@@ -266,19 +290,24 @@ class _AddressesScreenState extends State<AddressesScreen> {
                             Container(
                               padding: const EdgeInsets.all(AppSpacing.xs),
                               decoration: BoxDecoration(
-                                color: addr.isDefault ? AppColors.primarySoft : AppColors.surfaceMuted,
+                                color: addr.isDefault
+                                    ? AppColors.primarySoft
+                                    : AppColors.surfaceMuted,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.home_rounded,
                                 size: 16,
-                                color: addr.isDefault ? AppColors.primary : AppColors.textSecondary,
+                                color: addr.isDefault
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
                               ),
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             Text(
                               addr.label,
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 15),
                             ),
                             if (addr.isDefault) ...[
                               const SizedBox(width: AppSpacing.sm),
@@ -289,7 +318,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.primarySoft,
-                                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.xs),
                                 ),
                                 child: const Text(
                                   'DEFAULT',
@@ -307,7 +337,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         PopupMenuButton<String>(
                           onSelected: (val) async {
                             if (val == 'default') {
-                              await addressService.setDefaultAddress(userId: _userId, addressId: addr.id);
+                              await addressService.setDefaultAddress(
+                                  userId: _userId, addressId: addr.id);
                               setState(() {});
                             } else if (val == 'edit') {
                               _showAddAddressSheet(addr);
@@ -318,11 +349,15 @@ class _AddressesScreenState extends State<AddressesScreen> {
                           },
                           itemBuilder: (context) => [
                             if (!addr.isDefault)
-                              const PopupMenuItem(value: 'default', child: Text('Set as Default')),
-                            const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              const PopupMenuItem(
+                                  value: 'default',
+                                  child: Text('Set as Default')),
+                            const PopupMenuItem(
+                                value: 'edit', child: Text('Edit')),
                             const PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete', style: TextStyle(color: AppColors.saleRed)),
+                              child: Text('Delete',
+                                  style: TextStyle(color: AppColors.saleRed)),
                             ),
                           ],
                         ),
@@ -331,12 +366,14 @@ class _AddressesScreenState extends State<AddressesScreen> {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       addr.fullName,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
                     ),
                     const SizedBox(height: AppSpacing.xxs),
                     Text(
                       addr.phone,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, fontSize: 12),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
@@ -360,7 +397,8 @@ class _AddressesScreenState extends State<AddressesScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Address', style: TextStyle(fontWeight: FontWeight.w700)),
+        label: const Text('Add Address',
+            style: TextStyle(fontWeight: FontWeight.w700)),
       ),
     );
   }

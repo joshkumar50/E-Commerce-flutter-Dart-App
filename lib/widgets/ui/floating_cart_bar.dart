@@ -29,12 +29,12 @@ class FloatingCartBar extends StatelessWidget {
         final hasItems = cart.itemCount > 0;
 
         return AnimatedSlide(
-          duration: AppMotion.normal,
-          curve: AppMotion.emphasized,
+          duration: AppMotion.slow,
+          curve: hasItems ? AppMotion.emphasized : AppMotion.accelerate,
           offset: hasItems ? Offset.zero : const Offset(0, 1.5),
           child: AnimatedOpacity(
             duration: AppMotion.normal,
-            curve: Curves.easeInOut,
+            curve: hasItems ? AppMotion.decelerate : AppMotion.accelerate,
             opacity: hasItems ? 1.0 : 0.0,
             child: IgnorePointer(
               ignoring: !hasItems,
@@ -82,7 +82,8 @@ class FloatingCartBar extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(AppRadius.full),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.full),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

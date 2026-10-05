@@ -30,7 +30,8 @@ class OrderHistoryScreen extends StatelessWidget {
       body: StreamBuilder<List<OrderV2>>(
         stream: orderService.watchCustomerOrders(userId),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             );
@@ -42,7 +43,8 @@ class OrderHistoryScreen extends StatelessWidget {
             return EmptyStateView(
               icon: Icons.receipt_long_outlined,
               title: 'No Orders Yet',
-              message: 'When you place an order, its real-time transaction and delivery status will appear here.',
+              message:
+                  'When you place an order, its real-time transaction and delivery status will appear here.',
               actionLabel: 'Start Shopping',
               onAction: () => context.go(Routes.home),
             );

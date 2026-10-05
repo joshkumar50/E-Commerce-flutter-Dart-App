@@ -27,11 +27,13 @@ class GlobalDrawer extends StatelessWidget {
           UserAccountsDrawerHeader(
             accountName: Row(
               children: [
-                Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(userName,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 if (userProvider.isAdmin) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.amber.shade700,
                       borderRadius: BorderRadius.circular(4),
@@ -56,7 +58,9 @@ class GlobalDrawer extends StatelessWidget {
                   : null,
               child: (avatarUrl == null || avatarUrl.isEmpty)
                   ? Icon(
-                      userProvider.isAdmin ? Icons.admin_panel_settings : Icons.person,
+                      userProvider.isAdmin
+                          ? Icons.admin_panel_settings
+                          : Icons.person,
                       color: Theme.of(context).colorScheme.primary,
                       size: 32,
                     )
@@ -135,9 +139,7 @@ class _DrawerItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon,
-          color: selected
-              ? Theme.of(context).colorScheme.primary
-              : null),
+          color: selected ? Theme.of(context).colorScheme.primary : null),
       title: Text(label),
       selected: selected,
       selectedTileColor:

@@ -14,7 +14,7 @@ BEGIN
         WHERE id = auth.uid() AND role = 'admin'
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 2. AUTOMATIC PROFILE CREATION TRIGGER
@@ -39,7 +39,7 @@ BEGIN
         updated_at = now();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Trigger attached to auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

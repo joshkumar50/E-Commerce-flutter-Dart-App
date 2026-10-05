@@ -10,7 +10,8 @@ class _SlidingGradientTransform extends GradientTransform {
 
   @override
   Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.translationValues(bounds.width * (percent * 2.0 - 1.0), 0.0, 0.0);
+    return Matrix4.translationValues(
+        bounds.width * (percent * 2.0 - 1.0), 0.0, 0.0);
   }
 }
 
@@ -30,7 +31,8 @@ class ShimmerLoading extends StatefulWidget {
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
 
-class _ShimmerLoadingState extends State<ShimmerLoading> with SingleTickerProviderStateMixin {
+class _ShimmerLoadingState extends State<ShimmerLoading>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override

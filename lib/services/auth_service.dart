@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:opem/models/profile.dart';
 import 'package:opem/services/profile_service.dart';
 import 'package:opem/utils/constants.dart';
+import 'package:opem/utils/rate_limiter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -12,6 +13,8 @@ class AuthService {
     serverClientId: googleWebClientId.isNotEmpty ? googleWebClientId : null,
     scopes: ['email', 'profile'],
   );
+
+  static final _authRateLimiter = RateLimiter(maxCalls: 5, window: const Duration(minutes: 1));
 
   // ─── State Getters ─────────────────────────────────────────────────────────
 
@@ -50,6 +53,9 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    if (!await _authRateLimiter.tryAcquire('signIn-$email')) {
+      throw const AuthException('Too many login attempts. Please wait a minute.');
+    }
     try {
       return await Supabase.instance.client.auth.signInWithPassword(
         email: email.trim(),
@@ -66,6 +72,9 @@ class AuthService {
     required String password,
     String? fullName,
   }) async {
+    if (!await _authRateLimiter.tryAcquire('signUp-$email')) {
+      throw const AuthException('Too many sign up attempts. Please wait a minute.');
+    }
     try {
       return await Supabase.instance.client.auth.signUp(
         email: email.trim(),
@@ -131,6 +140,9 @@ class AuthService {
   /// Send an SMS OTP code to a phone number.
   /// Format must be E.164 (e.g. +919876543210).
   Future<void> signInWithPhone({required String phone}) async {
+    if (!await _authRateLimiter.tryAcquire('signInWithPhone-$phone')) {
+      throw const AuthException('Too many OTP attempts. Please wait a minute.');
+    }
     try {
       await Supabase.instance.client.auth.signInWithOtp(
         phone: phone.trim(),

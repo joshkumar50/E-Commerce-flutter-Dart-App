@@ -4,11 +4,13 @@ import 'package:opem/services/auth_service.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:opem/utils/rate_limiter.dart';
 
 /// Service orchestrating the server-authoritative checkout and payment flow.
 /// NEVER computes final prices or marks orders paid from the client.
 class CheckoutService {
   static const _uuid = Uuid();
+  static final _checkoutRateLimiter = RateLimiter(maxCalls: 3, window: const Duration(minutes: 1));
 
   bool get _shouldUseMockFallback {
     if (isDemoMode) return true;
@@ -28,11 +30,16 @@ class CheckoutService {
     String? idempotencyKey,
     String notes = '',
   }) async {
+    final user = authService.currentUser;
+    final userId = user?.id ?? 'demo-user-123';
+
+    if (!await _checkoutRateLimiter.tryAcquire('checkout-$userId')) {
+      throw Exception('Checkout rate limit exceeded. Please wait a minute before trying again.');
+    }
+
     final key = idempotencyKey ?? _uuid.v4();
 
     if (_shouldUseMockFallback) {
-      final user = authService.currentUser;
-      final userId = user?.id ?? 'demo-user-123';
       return await DemoTransactionService.instance.createCheckout(
         userId: userId,
         addressId: addressId,

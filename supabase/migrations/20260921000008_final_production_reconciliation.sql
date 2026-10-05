@@ -53,6 +53,9 @@ BEGIN
         RAISE EXCEPTION 'Authentication required to checkout' USING ERRCODE = 'P0001';
     END IF;
 
+    -- 1b. Rate limiting check
+    PERFORM public.check_rate_limit('checkout', 3, 60);
+
     -- 2. Check Idempotency Key
     IF p_idempotency_key IS NOT NULL AND p_idempotency_key <> '' THEN
         SELECT * INTO v_existing_key

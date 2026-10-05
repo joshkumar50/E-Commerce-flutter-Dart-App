@@ -156,7 +156,7 @@ DECLARE
     v_new_version INT;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can update products';
+        RAISE EXCEPTION 'Unauthorized: only administrators can update products' USING ERRCODE = 'P0013';
     END IF;
 
     -- Fetch current product state
@@ -301,7 +301,7 @@ DECLARE
     v_event RECORD;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can trigger outbox batch processing';
+        RAISE EXCEPTION 'Unauthorized: only administrators can trigger outbox batch processing' USING ERRCODE = 'P0013';
     END IF;
 
     FOR v_event IN 
@@ -347,6 +347,10 @@ RETURNS JSONB AS $$
 DECLARE
     v_available INT;
 BEGIN
+    IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Unauthorized: only administrators can allocate location inventory' USING ERRCODE = 'P0013';
+    END IF;
+
     IF p_quantity <= 0 THEN
         RAISE EXCEPTION 'Quantity must be greater than zero';
     END IF;

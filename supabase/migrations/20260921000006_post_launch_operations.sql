@@ -169,7 +169,7 @@ DECLARE
     v_log_id BIGINT;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can write audit records';
+        RAISE EXCEPTION 'Unauthorized: only administrators can write audit records' USING ERRCODE = 'P0013';
     END IF;
 
     SELECT email INTO v_actor_email FROM auth.users WHERE id = v_actor_id;
@@ -222,7 +222,7 @@ DECLARE
     v_status TEXT := 'HEALTHY';
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can run data health checks';
+        RAISE EXCEPTION 'Unauthorized: only administrators can run data health checks' USING ERRCODE = 'P0013';
     END IF;
 
     -- Check 1: Negative stock quantities
@@ -318,7 +318,7 @@ DECLARE
     v_overall_conversion NUMERIC := 0.0;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can access business funnel analytics';
+        RAISE EXCEPTION 'Unauthorized: only administrators can access business funnel analytics' USING ERRCODE = 'P0013';
     END IF;
 
     -- Aggregate counts from analytics_events
@@ -409,7 +409,7 @@ DECLARE
     v_payment_failure_rate NUMERIC := 0.0;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can fetch dashboard metrics';
+        RAISE EXCEPTION 'Unauthorized: only administrators can fetch dashboard metrics' USING ERRCODE = 'P0013';
     END IF;
 
     -- Customers
@@ -501,7 +501,7 @@ DECLARE
     v_cutoff TIMESTAMPTZ;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can run telemetry cleanup';
+        RAISE EXCEPTION 'Unauthorized: only administrators can run telemetry cleanup' USING ERRCODE = 'P0013';
     END IF;
 
     v_cutoff := now() - (COALESCE(p_days_retention, 90) || ' days')::INTERVAL;

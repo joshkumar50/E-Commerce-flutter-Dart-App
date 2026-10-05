@@ -251,3 +251,28 @@ CREATE POLICY "product_images_bucket_admin_update"
 CREATE POLICY "product_images_bucket_admin_delete"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'product-images' AND public.is_admin());
+
+-- -----------------------------------------------------------------------------
+-- 13. STORAGE BUCKET & POLICIES (avatars)
+-- -----------------------------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Public can view avatars
+CREATE POLICY "avatars_bucket_public_select"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'avatars');
+
+-- Users can upload/update/delete their own avatars
+CREATE POLICY "avatars_bucket_user_insert"
+    ON storage.objects FOR INSERT
+    WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
+
+CREATE POLICY "avatars_bucket_user_update"
+    ON storage.objects FOR UPDATE
+    USING (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
+
+CREATE POLICY "avatars_bucket_user_delete"
+    ON storage.objects FOR DELETE
+    USING (bucket_id = 'avatars' AND auth.uid()::text = (string_to_array(name, '/'))[1]);

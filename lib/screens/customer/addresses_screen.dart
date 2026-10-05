@@ -7,6 +7,8 @@ import 'package:opem/services/address_service.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/widgets/ui/empty_state_view.dart';
 import 'package:opem/widgets/ui/pressable_scale.dart';
+import 'package:opem/utils/validators.dart';
+import 'package:flutter/services.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});
@@ -79,18 +81,23 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: nameCtrl,
+                    maxLength: 100,
+                    inputFormatters: [AppInputFormatters.safeText],
                     decoration:
                         const InputDecoration(labelText: 'Contact Name'),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Enter contact name'
-                        : null,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Enter contact name';
+                      return AppValidators.validateSanitized(v, fieldName: 'Contact Name');
+                    },
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: phoneCtrl,
+                    maxLength: 15,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     keyboardType: TextInputType.phone,
                     decoration:
-                        const InputDecoration(labelText: 'Phone Number'),
+                        const InputDecoration(labelText: 'Phone Number', counterText: ''),
                     validator: (v) => (v == null || v.trim().length < 8)
                         ? 'Enter valid phone number'
                         : null,
@@ -98,17 +105,23 @@ class _AddressesScreenState extends State<AddressesScreen> {
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: line1Ctrl,
+                    maxLength: 255,
+                    inputFormatters: [AppInputFormatters.safeText],
                     decoration: const InputDecoration(
                         labelText: 'Flat / House / Building / Street'),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Enter address'
-                        : null,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Enter address';
+                      return AppValidators.validateSanitized(v, fieldName: 'Address Line 1');
+                    },
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
                     controller: line2Ctrl,
+                    maxLength: 255,
+                    inputFormatters: [AppInputFormatters.safeText],
                     decoration: const InputDecoration(
                         labelText: 'Area / Landmark (Optional)'),
+                    validator: (v) => AppValidators.validateSanitized(v, fieldName: 'Address Line 2'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
@@ -116,19 +129,24 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: cityCtrl,
-                          decoration: const InputDecoration(labelText: 'City'),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
-                              : null,
+                          maxLength: 100,
+                          inputFormatters: [AppInputFormatters.safeText],
+                          decoration: const InputDecoration(labelText: 'City', counterText: ''),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Required';
+                            return AppValidators.validateSanitized(v, fieldName: 'City');
+                          },
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: TextFormField(
                           controller: postalCtrl,
+                          maxLength: 10,
+                          inputFormatters: [AppInputFormatters.alphanumeric],
                           keyboardType: TextInputType.number,
                           decoration:
-                              const InputDecoration(labelText: 'Postal Code'),
+                              const InputDecoration(labelText: 'Postal Code', counterText: ''),
                           validator: (v) => (v == null || v.trim().length < 4)
                               ? 'Required'
                               : null,

@@ -8,6 +8,8 @@ import 'package:opem/services/category_service.dart';
 import 'package:opem/services/product_image_service.dart';
 import 'package:opem/services/product_service.dart';
 import 'package:opem/services/storage_service.dart';
+import 'package:opem/utils/validators.dart';
+import 'package:flutter/services.dart';
 
 class AdminProductFormScreen extends StatefulWidget {
   final Product? product;
@@ -446,10 +448,12 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _imageUrlController,
+                      maxLength: 1000,
                       decoration: const InputDecoration(
                         labelText: 'Or Paste Image URL',
                         prefixIcon: Icon(Icons.link),
                       ),
+                      validator: (v) => AppValidators.validateSanitized(v, fieldName: 'Image URL'),
                       onChanged: (_) => setState(() {}),
                     ),
                     if (_secondaryImages.isNotEmpty) ...[
@@ -504,6 +508,8 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     // Name
                     TextFormField(
                       controller: _nameController,
+                      maxLength: 255,
+                      inputFormatters: [AppInputFormatters.safeText],
                       decoration: const InputDecoration(
                         labelText: 'Product Name *',
                         hintText: 'e.g. Organic Cavendish Bananas',
@@ -513,7 +519,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                         if (val == null || val.trim().isEmpty) {
                           return 'Product name is required';
                         }
-                        return null;
+                        return AppValidators.validateSanitized(val, fieldName: 'Product Name');
                       },
                     ),
                     const SizedBox(height: 14),
@@ -553,6 +559,8 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     // Unit
                     TextFormField(
                       controller: _unitController,
+                      maxLength: 50,
+                      inputFormatters: [AppInputFormatters.safeText],
                       decoration: const InputDecoration(
                         labelText: 'Unit / Packaging *',
                         hintText: 'e.g. 1 kg, 500g, 1 Litre, Pack of 3',
@@ -562,7 +570,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                         if (val == null || val.trim().isEmpty) {
                           return 'Unit description is required';
                         }
-                        return null;
+                        return AppValidators.validateSanitized(val, fieldName: 'Unit');
                       },
                     ),
                     const SizedBox(height: 14),
@@ -571,11 +579,14 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 3,
+                      maxLength: 2000,
+                      inputFormatters: [AppInputFormatters.safeText],
                       decoration: const InputDecoration(
                         labelText: 'Description (Optional)',
                         hintText: 'Freshness details, origin, or dietary notes...',
                         prefixIcon: Icon(Icons.notes_outlined),
                       ),
+                      validator: (val) => AppValidators.validateSanitized(val, fieldName: 'Description'),
                     ),
                   ],
                 ),
@@ -602,10 +613,13 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _priceController,
+                            maxLength: 12,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Price (₹) *',
                               prefixIcon: Icon(Icons.currency_rupee_rounded),
+                              counterText: '',
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) {
@@ -623,10 +637,13 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _salePriceController,
+                            maxLength: 12,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             decoration: const InputDecoration(
                               labelText: 'Sale Price (₹) (Opt)',
                               prefixIcon: Icon(Icons.local_offer_outlined),
+                              counterText: '',
                             ),
                             validator: (val) {
                               if (val == null || val.trim().isEmpty) return null;
@@ -645,10 +662,13 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     // Stock Quantity
                     TextFormField(
                       controller: _stockController,
+                      maxLength: 9,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Stock Quantity *',
                         prefixIcon: Icon(Icons.warehouse_outlined),
+                        counterText: '',
                       ),
                       validator: (val) {
                         if (val == null || val.trim().isEmpty) {

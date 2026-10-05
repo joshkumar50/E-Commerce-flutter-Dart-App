@@ -8,6 +8,7 @@ import 'package:opem/core/router.dart';
 import 'package:opem/provider/user_provider.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'package:opem/utils/validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum _PhoneAuthStep {
@@ -298,6 +299,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       if (val.trim().length < 8) {
                         return 'Please enter a valid phone number';
                       }
+                      final sanitized = AppValidators.validateSanitized(val, fieldName: 'Phone Number');
+                      if (sanitized != null) return sanitized;
                       return null;
                     },
                   ),

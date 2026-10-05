@@ -12,6 +12,7 @@ import 'package:opem/services/analytics_service.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/checkout_service.dart';
 import 'package:opem/services/remote_config_service.dart';
+import 'package:opem/utils/validators.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -633,12 +634,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _notesController,
+                        maxLength: 255,
+                        inputFormatters: [AppInputFormatters.safeText],
                         decoration: const InputDecoration(
                           hintText:
                               'e.g. Leave package at front door, ring doorbell',
                           border: OutlineInputBorder(),
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
+                          counterText: '',
                         ),
                         maxLines: 2,
                       ),

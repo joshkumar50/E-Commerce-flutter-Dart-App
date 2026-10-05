@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:opem/core/router.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/widgets/ui/animated_primary_button.dart';
+import 'package:opem/utils/validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -152,6 +153,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           TextFormField(
                             controller: _nameController,
+                            maxLength: 100,
+                            inputFormatters: [AppInputFormatters.safeText],
                             textInputAction: TextInputAction.next,
                             textCapitalization: TextCapitalization.words,
                             decoration: InputDecoration(
@@ -167,12 +170,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Full name is required';
                               if (v.trim().length < 2) return 'Name must be at least 2 characters';
+                              final sanitized = AppValidators.validateSanitized(v, fieldName: 'Full Name');
+                              if (sanitized != null) return sanitized;
                               return null;
                             },
                           ),
                           Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                           TextFormField(
                             controller: _emailController,
+                            maxLength: 255,
+                            inputFormatters: [AppInputFormatters.safeText],
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autocorrect: false,
@@ -187,6 +194,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Email is required';
+                              final sanitized = AppValidators.validateSanitized(v, fieldName: 'Email');
+                              if (sanitized != null) return sanitized;
                               final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.]+');
                               return emailRegex.hasMatch(v.trim()) ? null : 'Enter a valid email address';
                             },
@@ -194,6 +203,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                           TextFormField(
                             controller: _passwordController,
+                            maxLength: 128,
+                            inputFormatters: [AppInputFormatters.safeText],
                             obscureText: !_passwordVisible,
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) => _handleSignUp(),
@@ -218,6 +229,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             validator: (v) {
                               if (v == null || v.isEmpty) return 'Password is required';
                               if (v.length < 6) return 'Password must be at least 6 characters';
+                              final sanitized = AppValidators.validateSanitized(v, fieldName: 'Password');
+                              if (sanitized != null) return sanitized;
                               return null;
                             },
                           ),

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:opem/core/router.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/widgets/ui/animated_primary_button.dart';
+import 'package:opem/utils/validators.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -163,6 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           TextFormField(
                             controller: _emailController,
+                            maxLength: 255,
+                            inputFormatters: [AppInputFormatters.safeText],
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autocorrect: false,
@@ -178,6 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Email is required';
+                              final sanitized = AppValidators.validateSanitized(v, fieldName: 'Email');
+                              if (sanitized != null) return sanitized;
                               final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[\w.]+');
                               return emailRegex.hasMatch(v.trim()) ? null : 'Enter a valid email address';
                             },
@@ -185,6 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                           TextFormField(
                             controller: _passwordController,
+                            maxLength: 128,
+                            inputFormatters: [AppInputFormatters.safeText],
                             obscureText: !_passwordVisible,
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) => _handleSignIn(),
@@ -206,8 +213,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               filled: true,
                               fillColor: Colors.transparent,
                             ),
-                            validator: (v) =>
-                                (v == null || v.length < 6) ? 'Password must be at least 6 characters' : null,
+                            validator: (v) {
+                              final sanitized = AppValidators.validateSanitized(v, fieldName: 'Password');
+                              if (sanitized != null) return sanitized;
+                              return (v == null || v.length < 6) ? 'Password must be at least 6 characters' : null;
+                            },
                           ),
                         ],
                       ),

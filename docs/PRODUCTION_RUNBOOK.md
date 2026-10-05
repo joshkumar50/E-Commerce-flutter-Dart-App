@@ -81,3 +81,12 @@ FirebaseCrashlytics.instance.setUserIdentifier(hashedUserId);
    - **"SECURITY DEFINER function executable by anon"** → REVOKE from anon
    - **"Public bucket exposes objects"** → review bucket RLS policies
 4. Document PERFORMANCE lints as backlog items in Jira/GitHub Issues.
+
+## Post-Deploy Smoke Test
+
+Execute this 5-minute manual checklist before completing the final deployment:
+1. Open `scripts/smoke-test-checklist.md`.
+2. Follow the Customer Journey steps: login, browse, cart, checkout, order.
+3. Follow the Admin Journey steps: login, add product, adjust stock, refund, trigger crash.
+4. Verify Sentry crash scrubbing and Supabase Idempotency.
+5. Do **NOT** proceed to final launch until all steps pass.

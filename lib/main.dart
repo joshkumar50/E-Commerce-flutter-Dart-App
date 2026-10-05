@@ -9,7 +9,9 @@ import 'package:opem/services/analytics_service.dart';
 import 'package:opem/services/remote_config_service.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:opem/utils/observability.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,14 +43,36 @@ Future<void> main() async {
   AnalyticsService.instance.init();
   await RemoteConfigService.instance.fetchConfig();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-      ],
-      child: const BBuysApp(),
-    ),
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+  
+  if (sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.sendDefaultPii = false;
+        options.beforeSend = (event, {hint}) {
+          final scrubbedBreadcrumbs = event.breadcrumbs?.map((b) {
+            final data = b.data != null ? AppObservability.sanitize(b.data!) as Map<String, dynamic>? : null;
+            final message = b.message != null ? AppObservability.sanitize({'message': b.message})['message'] as String? : null;
+            return b.copyWith(data: data, message: message);
+          }).toList();
+          return event.copyWith(breadcrumbs: scrubbedBreadcrumbs);
+        };
+      },
+      appRunner: () => runApp(_buildApp()),
+    );
+  } else {
+    runApp(_buildApp());
+  }
+}
+
+Widget _buildApp() {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => UserProvider()),
+      ChangeNotifierProvider(create: (_) => CartProvider()),
+    ],
+    child: const BBuysApp(),
   );
 }
 

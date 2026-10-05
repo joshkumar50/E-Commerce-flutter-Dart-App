@@ -69,3 +69,15 @@ import 'dart:convert';
 final hashedUserId = sha256.convert(utf8.encode(user.id)).toString();
 FirebaseCrashlytics.instance.setUserIdentifier(hashedUserId);
 ```
+
+## Post-Deploy Verification (Supabase Advisors)
+
+**Steps:**
+1. Open Supabase Dashboard → Database → Advisors
+2. Run ALL rules (SECURITY + PERFORMANCE)
+3. Resolve every SECURITY lint. Common ones:
+   - **"RLS disabled on table"** → enable RLS
+   - **"Function search_path mutable"** → add `SET search_path = public, pg_temp`
+   - **"SECURITY DEFINER function executable by anon"** → REVOKE from anon
+   - **"Public bucket exposes objects"** → review bucket RLS policies
+4. Document PERFORMANCE lints as backlog items in Jira/GitHub Issues.

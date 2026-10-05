@@ -33,11 +33,13 @@ class UserProvider extends ChangeNotifier {
     // Listen to Supabase Auth state changes
     _authSubscription = authService.authStateChanges.listen((data) {
       final session = data.session;
-      if (session != null) {
+      final event = data.event;
+      
+      if (event == AuthChangeEvent.signedOut || (event == AuthChangeEvent.tokenRefreshed && session == null)) {
+        reset();
+      } else if (session != null) {
         _subscribeToProfile(session.user.id);
         loadProfile();
-      } else {
-        reset();
       }
     });
   }

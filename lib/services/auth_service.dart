@@ -123,18 +123,8 @@ class AuthService {
     } on AuthException catch (e) {
       throw _mapAuthException(e);
     } catch (e) {
-      debugPrint('[AuthService] Native Google Sign-In error ($e). Falling back to browser OAuth.');
-      // Automatic fallback to universal OAuth redirect
-      try {
-        await Supabase.instance.client.auth.signInWithOAuth(
-          OAuthProvider.google,
-          redirectTo: authRedirectUri,
-        );
-        return null;
-      } catch (oauthErr) {
-        debugPrint('[AuthService] Browser OAuth redirect failed: $oauthErr');
-        throw AuthException('Google Sign-In failed: ${oauthErr.toString()}');
-      }
+      debugPrint('[AuthService] Native Google Sign-In error: $e');
+      throw const AuthException('Google Sign-In failed. Ensure Google services are available.');
     }
   }
 

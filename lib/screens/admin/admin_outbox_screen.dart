@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../core/admin_theme.dart';
@@ -267,7 +268,7 @@ class _AdminOutboxScreenState extends State<AdminOutboxScreen> {
   }
 
   void _showEventDetails(OutboxEvent e) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AdminColors.surface,

@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -255,7 +256,7 @@ class AppUpdateService {
     required BuildContext context,
     required AppUpdateInfo updateInfo,
   }) {
-    showDialog(
+    showAppDialog(
       context: context,
       barrierDismissible: !updateInfo.forceUpdate,
       builder: (dialogCtx) => AppUpdateModalDialog(updateInfo: updateInfo),
@@ -263,7 +264,7 @@ class AppUpdateService {
   }
 
   void _showUpToDateDialog(BuildContext context, String currentVersion) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

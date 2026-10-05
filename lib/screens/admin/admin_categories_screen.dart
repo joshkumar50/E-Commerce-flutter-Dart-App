@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:opem/core/admin_theme.dart';
 import 'package:opem/models/category.dart';
@@ -24,7 +25,7 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
   }
 
   void _confirmDelete(BuildContext context, Category category, int productCount) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Row(

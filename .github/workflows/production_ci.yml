@@ -93,19 +93,28 @@ jobs:
             exit 1
           fi
 
+      # ─── Pre-Build Secret-Scan Gate ───────────────────────────────────────────
+      - name: Verify no secrets in build output
+        run: |
+          if grep -rIn "eyJhbGciOiJIUzI1Ni\|-----BEGIN\|service_role" build/ 2>/dev/null; then
+            echo "FATAL: JWT or secret pattern found in build artifacts"
+            exit 1
+          fi
+          echo "No secrets detected in build output"
+
       # ─── Build Direct-Install APKs with Incremental Build Numbers ───────────
       - name: Build Customer App APK
-        run: flutter build apk --flavor customer -t lib/main.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App APK
-        run: flutter build apk --flavor admin -t lib/main_admin.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
-        run: flutter build appbundle --flavor customer -t lib/main.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App Bundle (AAB)
-        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Prepare Distribution Artifacts & Version Manifest ───────────────────
       - name: Prepare In-App Auto-Update Release Bundle
@@ -196,4 +205,19 @@ jobs:
           name: admin-app-bundle
           path: build/app/outputs/bundle/*admin*/*.aab
           retention-days: 30
+
+      # ─── Upload Debug Info (for crash symbolication only) ───────────────────
+      - name: Upload debug-info (Customer)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: customer-debug-info
+          path: build/debug-info/customer/
+          retention-days: 90
+
+      - name: Upload debug-info (Admin)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: admin-debug-info
+          path: build/debug-info/admin/
+          retention-days: 90
 

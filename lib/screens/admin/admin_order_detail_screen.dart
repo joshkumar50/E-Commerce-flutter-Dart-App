@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:opem/core/admin_theme.dart';
 import 'package:opem/models/order_v2.dart';
@@ -60,7 +61,7 @@ class _AdminOrderDetailScreenState extends State<AdminOrderDetailScreen> {
     final reasonController = TextEditingController();
     bool restock = true;
 
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(

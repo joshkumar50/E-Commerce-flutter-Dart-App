@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:opem/core/admin_theme.dart';
@@ -284,7 +285,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   }
 
   void _showConflictDialog(int serverVersion) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AdminColors.surface,
@@ -749,7 +750,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   }
 
   void _confirmDelete() {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Text('Delete Product'),

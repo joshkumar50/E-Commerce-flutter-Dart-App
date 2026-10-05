@@ -1,3 +1,4 @@
+import 'package:opem/widgets/ui/app_modals.dart';
 import 'package:flutter/material.dart';
 import 'package:opem/core/admin_theme.dart';
 import 'package:opem/provider/admin_provider.dart';
@@ -9,7 +10,7 @@ class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
 
   void _confirmLogout(BuildContext context, AdminProvider admin) {
-    showDialog(
+    showAppDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Text('Sign Out'),

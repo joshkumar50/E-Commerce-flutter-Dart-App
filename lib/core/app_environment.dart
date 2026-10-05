@@ -42,7 +42,7 @@ class AppEnvironment {
     defaultValue: 'io.supabase.bbuys://login-callback',
   );
 
-  static const bool isDemoMode = false;
+  static const bool isDemoMode = bool.fromEnvironment('DEMO_MODE', defaultValue: false);
 
   /// Validates environment variables at application startup.
   /// Strictly prevents shipping a production build with missing or placeholder credentials.

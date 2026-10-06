@@ -1,0 +1,6 @@
+#!/bin/sh
+if git diff --cached --name-only --diff-filter=ACM | grep -E '^\.env(\.|$)' | grep -v '\.env\.example$'; then
+  echo "BLOCKED: Attempted to commit a .env file. Use .env.example only."
+  exit 1
+fi
+exit 0

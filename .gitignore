@@ -62,3 +62,14 @@ key.properties
 lib_old/
 test_old/
 
+# Security scanning tools (downloaded, never committed)
+gitleaks.exe
+gitleaks.zip
+osv-scanner.exe
+osv-scanner*
+trufflehog*
+
+# Scratch / temp working folders
+scratch/
+tmp/
+temp/

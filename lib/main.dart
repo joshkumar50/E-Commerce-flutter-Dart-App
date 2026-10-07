@@ -35,7 +35,8 @@ Future<void> main() async {
       publishableKey: supabaseAnonKey,
     );
   } catch (e) {
-    runApp(ConfigurationErrorScreen(error: 'Database Initialization Error: $e'));
+    runApp(
+        ConfigurationErrorScreen(error: 'Database Initialization Error: $e'));
     return;
   }
 
@@ -44,16 +45,21 @@ Future<void> main() async {
   await RemoteConfigService.instance.fetchConfig();
 
   const sentryDsn = String.fromEnvironment('SENTRY_DSN');
-  
+
   if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;
         options.sendDefaultPii = false;
-        options.beforeSend = (event, {hint}) {
+        options.beforeSend = (event, hint) {
           final scrubbedBreadcrumbs = event.breadcrumbs?.map((b) {
-            final data = b.data != null ? AppObservability.sanitize(b.data!) as Map<String, dynamic>? : null;
-            final message = b.message != null ? AppObservability.sanitize({'message': b.message})['message'] as String? : null;
+            final data = b.data != null
+                ? AppObservability.sanitize(b.data!) as Map<String, dynamic>?
+                : null;
+            final message = b.message != null
+                ? AppObservability.sanitize({'message': b.message})['message']
+                    as String?
+                : null;
             return b.copyWith(data: data, message: message);
           }).toList();
           return event.copyWith(breadcrumbs: scrubbedBreadcrumbs);
@@ -123,7 +129,10 @@ class ConfigurationErrorScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'Configuration Error',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),

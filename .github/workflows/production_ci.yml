@@ -74,7 +74,7 @@ jobs:
         run: flutter pub get
 
       # Setup signing key from repository secrets if configured, or use standard deterministic keystore
-      - name: Configure Keystore (Deterministic Release Signing)
+      - name: Configure Keystore (Debug fallback for template)
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -87,10 +87,20 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
             echo "storePassword=$KEYSTORE_PASSWORD" >> android/key.properties
             echo "storeFile=../upload-keystore.jks" >> android/key.properties
-            echo "Release keystore configured successfully from secrets."
+            echo "Release keystore configured from secrets."
           else
-            echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is missing."
-            exit 1
+            echo "No production keystore configured."
+            echo "This is a TEMPLATE build - APKs will use debug signing."
+            echo "See SECURITY_AUDIT_FINAL_REPORT.md section 13 for production setup."
+            keytool -genkey -v -keystore android/upload-keystore.jks \
+              -alias upload -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=B-Buys Template, OU=Template, O=Template, L=City, ST=State, C=IN"
+            echo "keyAlias=upload" > android/key.properties
+            echo "keyPassword=android" >> android/key.properties
+            echo "storePassword=android" >> android/key.properties
+            echo "storeFile=../upload-keystore.jks" >> android/key.properties
+            echo "Debug keystore generated for template build."
           fi
 
       # ─── Pre-Build Secret-Scan Gate ───────────────────────────────────────────

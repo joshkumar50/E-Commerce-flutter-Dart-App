@@ -114,17 +114,17 @@ jobs:
 
       # ─── Build Direct-Install APKs with Incremental Build Numbers ───────────
       - name: Build Customer App APK
-        run: flutter build apk --flavor customer -t lib/main.dart --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }} --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App APK
-        run: flutter build apk --flavor admin -t lib/main_admin.dart --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }} --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
-        run: flutter build appbundle --flavor customer -t lib/main.dart --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }} --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App Bundle (AAB)
-        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }} --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Prepare Distribution Artifacts & Version Manifest ───────────────────
       - name: Prepare In-App Auto-Update Release Bundle

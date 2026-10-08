@@ -23,7 +23,7 @@ dependencies:
 
   # UI
   google_fonts: ^9.0.0
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.4
   flutter_easyloading: ^4.0.2
 
   # Auth

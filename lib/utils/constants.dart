@@ -1,7 +1,17 @@
 library;
 
 /// Global constants and environment configuration.
-/// Defaults to configured live Supabase cloud instance.
+///
+/// ⚠️  SECURITY NOTICE ⚠️
+/// All sensitive credentials (Supabase URL, Anon Key, Google Client IDs) are
+/// loaded EXCLUSIVELY via --dart-define or --dart-define-from-file at build
+/// time. There are NO hardcoded fallback values in this file.
+///
+/// To run the app locally, create a .env.development file (see .env.example)
+/// and pass it at run time:
+///   flutter run --dart-define-from-file=.env.development
+///
+/// The .env files are listed in .gitignore and are NEVER committed.
 
 const String appName = 'B-Buys Grocery';
 const String adminAppName = 'B-Buys Store Admin';
@@ -9,15 +19,17 @@ const String adminAppName = 'B-Buys Store Admin';
 /// Threshold below which products are flagged as 'Low Stock'
 const int kLowStockThreshold = 10;
 
-// Supabase credentials (defaults to configured live cloud instance)
+// ─── Supabase credentials ──────────────────────────────────────────────────
+// Injected at build time via --dart-define or --dart-define-from-file.
+// Never provide real credentials as defaultValue here.
 const String supabaseUrl = String.fromEnvironment(
   'SUPABASE_URL',
-  defaultValue: 'https://eqhkqkewhpvxfwaggkmt.supabase.co',
+  defaultValue: '', // Must be provided at build time
 );
 
 const String supabaseAnonKey = String.fromEnvironment(
   'SUPABASE_ANON_KEY',
-  defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxaGtxa2V3aHB2eGZ3YWdna210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODAxMDMsImV4cCI6MjEwNTY1NjEwM30.Oqxw8a7YC4DacRPO4ZZPXI_rbtCwHkyNrHMdkephAmc',
+  defaultValue: '', // Must be provided at build time
 );
 
 const String authRedirectUri = String.fromEnvironment(
@@ -25,9 +37,10 @@ const String authRedirectUri = String.fromEnvironment(
   defaultValue: 'io.supabase.bbuys://login-callback',
 );
 
+// ─── Google OAuth Client IDs ───────────────────────────────────────────────
 const String googleWebClientId = String.fromEnvironment(
   'GOOGLE_CLIENT_ID_WEB',
-  defaultValue: '698682998100-v8re33k7lae4o5r0plhhmau9m43pdm5q.apps.googleusercontent.com',
+  defaultValue: '', // Must be provided at build time
 );
 
 const String googleIosClientId = String.fromEnvironment(

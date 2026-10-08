@@ -129,6 +129,11 @@ class ProductService {
     // Pathological input limit & early reject to protect database
     if (cleanQuery.length < 2 || cleanQuery.length > 50) return [];
 
+    // Guard against explicit wildcard injections that could cause expensive sequential scans
+    // Note: PostgREST safely escapes values by default for SQLi protection, but unescaped
+    // wildcards inside the ilike string can still cause performance degradation.
+    if (cleanQuery.contains('%') || cleanQuery.contains('_')) return [];
+
     final safeLimit = limit.clamp(1, 50);
     final safeOffset = offset < 0 ? 0 : offset;
 

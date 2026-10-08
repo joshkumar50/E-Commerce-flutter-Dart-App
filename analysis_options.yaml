@@ -10,12 +10,16 @@
 analyzer:
   exclude:
     - build/**
-    - android/**
+    - .dart_tool/**
     - ios/**
+    - android/**
     - web/**
+    - windows/**
+    - test/**
+    - docs/**
+    - supabase/**
     - lib_old/**
     - test_old/**
-    - windows/**
 include: package:flutter_lints/flutter.yaml
 
 

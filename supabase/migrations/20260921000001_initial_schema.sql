@@ -9,6 +9,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- -----------------------------------------------------------------------------
 -- 1. PROFILES TABLE
 -- Extends Supabase auth.users with app-specific profile & role data.
+-- SECURITY CONSTRAINT: Passwords must be handled EXCLUSIVELY by Supabase Auth (auth.users).
+-- NEVER add password, hash, or salt columns to this table or any public.* table.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,

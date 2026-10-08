@@ -286,11 +286,13 @@ ALTER TABLE public.order_status_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_status_history ENABLE ROW LEVEL SECURITY;
 
 -- Orders: Customer can read own, Admin can read all. NO DIRECT INSERT/UPDATE FROM CLIENT.
+DROP POLICY IF EXISTS "Users can view own orders" ON public.orders;
 CREATE POLICY "Users can view own orders"
     ON public.orders FOR SELECT
     USING (auth.uid() = user_id OR public.is_admin());
 
 -- Order Items: Customer can read own order items, Admin can read all.
+DROP POLICY IF EXISTS "Users can view own order items" ON public.order_items;
 CREATE POLICY "Users can view own order items"
     ON public.order_items FOR SELECT
     USING (
@@ -302,6 +304,7 @@ CREATE POLICY "Users can view own order items"
     );
 
 -- Payments: Customer can read own payments, Admin can read all.
+DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
 CREATE POLICY "Users can view own payments"
     ON public.payments FOR SELECT
     USING (
@@ -313,6 +316,7 @@ CREATE POLICY "Users can view own payments"
     );
 
 -- Inventory Reservations: Customer can view for own order, Admin can view all.
+DROP POLICY IF EXISTS "Users can view own reservations" ON public.inventory_reservations;
 CREATE POLICY "Users can view own reservations"
     ON public.inventory_reservations FOR SELECT
     USING (
@@ -324,11 +328,13 @@ CREATE POLICY "Users can view own reservations"
     );
 
 -- Inventory Ledger: Admin only.
+DROP POLICY IF EXISTS "Admins can view inventory ledger" ON public.inventory_ledger;
 CREATE POLICY "Admins can view inventory ledger"
     ON public.inventory_ledger FOR SELECT
     USING (public.is_admin());
 
 -- Refunds: Customer can view own refunds, Admin can view all.
+DROP POLICY IF EXISTS "Users can view own refunds" ON public.refunds;
 CREATE POLICY "Users can view own refunds"
     ON public.refunds FOR SELECT
     USING (
@@ -340,11 +346,13 @@ CREATE POLICY "Users can view own refunds"
     );
 
 -- Idempotency Keys: User owns their keys, Admin can view all.
+DROP POLICY IF EXISTS "Users can access own idempotency keys" ON public.idempotency_keys;
 CREATE POLICY "Users can access own idempotency keys"
     ON public.idempotency_keys FOR ALL
     USING (auth.uid() = user_id OR public.is_admin());
 
 -- Status Histories:
+DROP POLICY IF EXISTS "Users can view own order status history" ON public.order_status_history;
 CREATE POLICY "Users can view own order status history"
     ON public.order_status_history FOR SELECT
     USING (

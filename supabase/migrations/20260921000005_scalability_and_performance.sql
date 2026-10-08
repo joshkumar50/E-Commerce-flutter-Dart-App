@@ -75,7 +75,7 @@ BEGIN
         WHERE id = auth.uid() AND role = 'admin'
     );
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 4. ATOMIC CART UPSERT RPC
@@ -118,7 +118,7 @@ BEGIN
         'quantity', v_item.quantity
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 5. BOUNDED PAGINATED PRODUCT CATALOG RPC
@@ -181,7 +181,7 @@ BEGIN
     LIMIT v_safe_limit
     OFFSET v_safe_offset;
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 6. SCALABLE BOUNDED RESERVATION EXPIRATION SWEEPER
@@ -262,7 +262,7 @@ BEGIN
         'executed_at', now()
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 7. GRANT PERMISSIONS

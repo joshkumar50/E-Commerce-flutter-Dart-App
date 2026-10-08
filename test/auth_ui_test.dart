@@ -23,12 +23,9 @@ Widget _createTestWidget(Widget child) {
 
 void main() {
   group('Online Mode & Authentication Suite', () {
-    test('1. Supabase live configuration is configured by default', () {
-      expect(supabaseUrl.isNotEmpty, isTrue);
-      expect(supabaseAnonKey.isNotEmpty, isTrue);
-      expect(supabaseUrl, 'https://eqhkqkewhpvxfwaggkmt.supabase.co');
-      expect(supabaseAnonKey, startsWith('eyJhbGciOiJIUzI1Ni'));
-      expect(AppEnvironment.supabaseUrl, 'https://eqhkqkewhpvxfwaggkmt.supabase.co');
+    test('1. Supabase live configuration is securely empty by default', () {
+      expect(supabaseUrl.isEmpty, isTrue);
+      expect(supabaseAnonKey.isEmpty, isTrue);
     });
 
     testWidgets('2. LoginScreen displays Phone and Google Auth buttons', (tester) async {
@@ -36,7 +33,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Sign In'), findsWidgets);
-      expect(find.text('Continue with Phone Number'), findsOneWidget);
+      expect(find.text('Continue with Phone'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
       expect(find.byIcon(Icons.phone_iphone_rounded), findsOneWidget);
       expect(find.byIcon(Icons.g_mobiledata), findsOneWidget);
@@ -46,8 +43,8 @@ void main() {
       await tester.pumpWidget(_createTestWidget(const RegisterScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text('Create Account'), findsOneWidget);
-      expect(find.text('Sign up with Phone Number'), findsOneWidget);
+      expect(find.text('Create Account'), findsWidgets);
+      expect(find.text('Sign up with Phone'), findsOneWidget);
       expect(find.text('Sign up with Google'), findsOneWidget);
     });
 

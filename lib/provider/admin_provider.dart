@@ -1,14 +1,17 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:opem/demo/demo_data.dart';
 import 'package:opem/models/profile.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/profile_service.dart';
 import 'package:opem/utils/constants.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminProvider extends ChangeNotifier {
   Profile? _profile;
   bool _isLoading = true;
   String? _errorMessage;
+  StreamSubscription<AuthState>? _authSubscription;
 
   Profile? get profile => _profile;
   bool get isLoading => _isLoading;
@@ -19,6 +22,15 @@ class AdminProvider extends ChangeNotifier {
 
   AdminProvider() {
     initAdminSession();
+    _authSubscription = authService.authStateChanges.listen((data) {
+      final event = data.event;
+      final session = data.session;
+      if (event == AuthChangeEvent.signedOut || (event == AuthChangeEvent.tokenRefreshed && session == null)) {
+        _profile = null;
+        _errorMessage = 'Session expired.';
+        notifyListeners();
+      }
+    });
   }
 
   /// Check active session and verify that the user possesses the 'admin' role
@@ -44,14 +56,21 @@ class AdminProvider extends ChangeNotifier {
     }
 
     try {
-      final p = await profileService.fetchProfile(currentUser.id);
-      if (p != null && p.role == 'admin') {
+      // Force server-side role verification (bypass cache)
+      final res = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', currentUser.id)
+          .single();
+          
+      final p = Profile.fromJson(res);
+      if (p.role == 'admin') {
         _profile = p;
         _errorMessage = null;
       } else {
         // Logged in user is NOT an admin in the database!
         _profile = p;
-        _errorMessage = 'Admin access required. Your account (${currentUser.email}) has role "${p?.role ?? 'customer'}" in the database. Please run: UPDATE public.profiles SET role = \'admin\' WHERE email = \'${currentUser.email}\'; in Supabase SQL Editor.';
+        _errorMessage = 'Admin access required. Your account (${currentUser.email}) has role "${p.role}" in the database. Please run: UPDATE public.profiles SET role = \'admin\' WHERE email = \'${currentUser.email}\'; in Supabase SQL Editor.';
       }
     } catch (e) {
       _errorMessage = 'Failed to verify admin credentials: $e';
@@ -144,5 +163,28 @@ class AdminProvider extends ChangeNotifier {
     _profile = null;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Re-auth gate for high-risk admin actions (refund, kill switch, stock adjustment)
+  Future<bool> reauthenticateForHighRiskAction(String password) async {
+    if (isDemoMode) return true;
+    final email = authService.currentUserEmail;
+    if (email == null) return false;
+    try {
+      // Re-verify credentials by attempting to sign in again
+      final res = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      return res.session != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 }

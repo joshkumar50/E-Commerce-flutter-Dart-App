@@ -26,8 +26,8 @@ class CategoryChipWidget extends StatelessWidget {
       onTap: onTap,
       scaleFactor: 0.95,
       child: AnimatedContainer(
-        duration: AppMotion.fast,
-        curve: Curves.easeInOut,
+        duration: AppMotion.normal,
+        curve: AppMotion.standard,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,

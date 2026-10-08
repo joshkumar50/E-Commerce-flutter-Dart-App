@@ -1,4 +1,5 @@
 # B-Buys Grocery Marketplace & Store Management Platform
+[![Security Audit](https://img.shields.io/badge/security-audited_2026--10-brightgreen)](SECURITY_AUDIT_FINAL_REPORT.md)
 
 A complete, production-ready grocery ecommerce ecosystem consisting of a **Customer Mobile App**, a dedicated **Admin Mobile App**, and a shared **Supabase/PostgreSQL** backend with ACID transaction guarantees, high-concurrency inventory protection, and performance optimizations.
 
@@ -89,3 +90,29 @@ flutter build apk --flavor admin -t lib/main_admin.dart
 - [Production Operational Runbook](file:///f:/mobile%20app/docs/PRODUCTION_RUNBOOK.md) — Daily SRE checks, incident response, rollback procedures, and key rotation.
 - [Google Play Store Readiness Guide](file:///f:/mobile%20app/docs/STORE_READINESS.md) — Store listing metadata, Data Safety questionnaire, and compliance checklists.
 - [Database Migrations](file:///f:/mobile%20app/supabase/migrations/) — Version-controlled SQL migrations (`000001` through `000005`).
+
+## Security
+
+This template has undergone a comprehensive 12-phase security
+audit. See [SECURITY_AUDIT_FINAL_REPORT.md](./SECURITY_AUDIT_FINAL_REPORT.md)
+for the full report.
+
+### Code-Level Protections
+- Row Level Security (RLS) on all tables
+- Server-authoritative pricing via PostgreSQL RPCs
+- Rate limiting (client token-bucket + server RPC)
+- Input validation via AppValidators
+- PII redaction in logs (including JWT scrubbing)
+- Immutable audit logs
+- Role-escalation trigger on profiles
+- Pre-commit hook blocks .env files
+
+### Per-Deployment Actions Required
+When forking this template for production, complete:
+1. Generate a fresh Android upload keystore
+2. Set GitHub secrets: ANDROID_KEYSTORE_BASE64, SUPABASE_ANON_KEY, SENTRY_DSN
+3. Rotate Supabase keys
+4. Enable PITR in Supabase Dashboard (Pro tier)
+5. Restrict Supabase CORS to your domain
+6. Configure Sentry/Crashlytics with PII scrubbing
+7. See docs/PRODUCTION_RUNBOOK.md for details

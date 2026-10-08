@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import 'google_text_theme.dart';
 
 /// Professional Admin Color Palette
 class AdminColors {
@@ -40,11 +42,22 @@ class AdminColors {
 /// Global Admin ThemeData
 class AdminTheme {
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.interTextTheme();
+    final baseTextTheme = interTextTheme();
 
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: AdminColors.background,
+      // Match the customer app's modern fade-forward page transitions.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: AdminColors.primary,
         primary: AdminColors.primary,
@@ -138,7 +151,8 @@ class AdminTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AdminColors.cardBorder),
@@ -156,7 +170,8 @@ class AdminTheme {
           borderSide: const BorderSide(color: AdminColors.danger),
         ),
         hintStyle: const TextStyle(color: AdminColors.textMuted, fontSize: 14),
-        labelStyle: const TextStyle(color: AdminColors.textSecondary, fontSize: 14),
+        labelStyle:
+            const TextStyle(color: AdminColors.textSecondary, fontSize: 14),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,

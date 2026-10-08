@@ -43,14 +43,17 @@ CREATE INDEX IF NOT EXISTS idx_event_outbox_correlation
 ALTER TABLE public.event_outbox ENABLE ROW LEVEL SECURITY;
 
 -- Only server-side functions / admins can read or manage outbox records
+DROP POLICY IF EXISTS "Admins can view event outbox" ON public.event_outbox;
 CREATE POLICY "Admins can view event outbox"
     ON public.event_outbox FOR SELECT
     USING (public.is_admin());
 
+DROP POLICY IF EXISTS "System and admins can insert outbox events" ON public.event_outbox;
 CREATE POLICY "System and admins can insert outbox events"
     ON public.event_outbox FOR INSERT
     WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Admins and system can update outbox status" ON public.event_outbox;
 CREATE POLICY "Admins and system can update outbox status"
     ON public.event_outbox FOR UPDATE
     USING (public.is_admin())
@@ -92,19 +95,23 @@ CREATE INDEX IF NOT EXISTS idx_inv_location_prod
 ALTER TABLE public.fulfillment_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventory_by_location ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view active fulfillment locations" ON public.fulfillment_locations;
 CREATE POLICY "Anyone can view active fulfillment locations"
     ON public.fulfillment_locations FOR SELECT
     USING (is_active = true OR public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can manage fulfillment locations" ON public.fulfillment_locations;
 CREATE POLICY "Admins can manage fulfillment locations"
     ON public.fulfillment_locations FOR ALL
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Public can view location inventory availability" ON public.inventory_by_location;
 CREATE POLICY "Public can view location inventory availability"
     ON public.inventory_by_location FOR SELECT
     USING (true);
 
+DROP POLICY IF EXISTS "Admins can manage location inventory" ON public.inventory_by_location;
 CREATE POLICY "Admins can manage location inventory"
     ON public.inventory_by_location FOR ALL
     USING (public.is_admin())
@@ -156,7 +163,7 @@ DECLARE
     v_new_version INT;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can update products';
+        RAISE EXCEPTION 'Unauthorized: only administrators can update products' USING ERRCODE = 'P0013';
     END IF;
 
     -- Fetch current product state
@@ -247,7 +254,7 @@ BEGIN
         'updated_at', v_updated.updated_at
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 5. RPC: PUBLISH OUTBOX EVENT (TRANSACTIONAL OUTBOX)
@@ -283,7 +290,7 @@ BEGIN
 
     RETURN v_event_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 6. RPC: PROCESS OUTBOX BATCH (IDEMPOTENT EVENT DISPATCHER)
@@ -301,7 +308,7 @@ DECLARE
     v_event RECORD;
 BEGIN
     IF NOT public.is_admin() THEN
-        RAISE EXCEPTION 'Unauthorized: only administrators can trigger outbox batch processing';
+        RAISE EXCEPTION 'Unauthorized: only administrators can trigger outbox batch processing' USING ERRCODE = 'P0013';
     END IF;
 
     FOR v_event IN 
@@ -332,7 +339,7 @@ BEGIN
         'timestamp', now()
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- -----------------------------------------------------------------------------
 -- 7. RPC: ALLOCATE LOCATION INVENTORY
@@ -347,6 +354,10 @@ RETURNS JSONB AS $$
 DECLARE
     v_available INT;
 BEGIN
+    IF NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Unauthorized: only administrators can allocate location inventory' USING ERRCODE = 'P0013';
+    END IF;
+
     IF p_quantity <= 0 THEN
         RAISE EXCEPTION 'Quantity must be greater than zero';
     END IF;
@@ -400,4 +411,4 @@ BEGIN
         'product_id', p_product_id
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;

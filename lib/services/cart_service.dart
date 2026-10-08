@@ -3,8 +3,11 @@ import 'package:opem/models/cart_item.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:opem/utils/observability.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:opem/utils/rate_limiter.dart';
 
 class CartService {
+  static final _cartRateLimiter = RateLimiter(maxCalls: 30, window: const Duration(minutes: 1));
+
   /// Fetch full cart with joined product data
   Future<List<CartItem>> fetchCart(String userId) async {
     if (isDemoMode) return DemoDataService.cartItems;
@@ -30,6 +33,10 @@ class CartService {
     required int productId,
     int quantity = 1,
   }) async {
+    if (!await _cartRateLimiter.tryAcquire('cart-$userId')) {
+      throw Exception('Adding to cart too quickly. Please slow down.');
+    }
+
     if (isDemoMode) {
       DemoDataService.addDemoCartItem(productId, quantity);
       return;

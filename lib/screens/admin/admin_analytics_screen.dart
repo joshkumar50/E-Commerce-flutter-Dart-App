@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opem/widgets/ui/app_modals.dart';
 import '../../services/analytics_service.dart';
 import '../../services/data_health_service.dart';
 
@@ -41,7 +42,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
   }
 
   Future<void> _purgeOldTelemetry() async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showAppDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Purge Expired Telemetry'),

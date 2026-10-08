@@ -12,15 +12,25 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppEnvironment.validate();
+  try {
+    AppEnvironment.validate();
+  } catch (e) {
+    runApp(ConfigurationErrorScreen(error: e.toString()));
+    return;
+  }
 
   _configLoading();
 
   if (!isDemoMode) {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      publishableKey: supabaseAnonKey,
-    );
+    try {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        publishableKey: supabaseAnonKey,
+      );
+    } catch (e) {
+      runApp(ConfigurationErrorScreen(error: 'Database Initialization Error: $e'));
+      return;
+    }
   }
 
   // Phase 8 Operations & Telemetry initialization
@@ -59,6 +69,45 @@ class BBuysAdminApp extends StatelessWidget {
       routerConfig: adminRouter,
       builder: EasyLoading.init(),
       theme: AdminTheme.lightTheme,
+    );
+  }
+}
+
+class ConfigurationErrorScreen extends StatelessWidget {
+  final String error;
+  const ConfigurationErrorScreen({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.red[50],
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 64),
+                const SizedBox(height: 24),
+                const Text(
+                  'Admin Configuration Error',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  error,
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

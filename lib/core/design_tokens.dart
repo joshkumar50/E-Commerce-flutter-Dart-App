@@ -114,16 +114,49 @@ class AppShadows {
   ];
 }
 
+/// Centralized motion system.
+///
+/// Durations and curves are tuned as a family so every surface in the app
+/// moves with the same rhythm: quick micro-feedback (~120ms), standard UI
+/// transitions (~250ms), and content entrances (~350ms). Entrances decelerate
+/// out (easeOutCubic / emphasized ease-out with a gentle overshoot), exits
+/// accelerate in (easeInCubic) — the modern "Material emphasized" rhythm.
 class AppMotion {
+  // ── Durations ──────────────────────────────────────────────────────────────
+  static const Duration instant = Duration(milliseconds: 80);
   static const Duration fast = Duration(milliseconds: 150);
   static const Duration normal = Duration(milliseconds: 250);
   static const Duration slow = Duration(milliseconds: 350);
+  static const Duration page = Duration(milliseconds: 300);
 
+  // ── Curves ─────────────────────────────────────────────────────────────────
+  /// Micro-interactions: press, selection, badge changes.
+  static const Curve interaction = Curves.easeOut;
+
+  /// Standard UI transitions (default for Animated* widgets).
   static const Curve standard = Curves.easeInOutCubic;
-  static const Curve emphasized = Curves.easeOutBack;
+
+  /// Content entrances with a subtle overshoot (no bouncy elastic).
+  static const Curve emphasized = Cubic(0.34, 1.56, 0.64, 1.0);
+
+  /// Entrances: fast start, long gentle settle.
   static const Curve decelerate = Curves.easeOutCubic;
-  static const Curve spring = Curves.elasticOut;
+
+  /// Exits: slow start, quick finish off-screen.
+  static const Curve accelerate = Curves.easeInCubic;
+
+  /// Small vertical rise used by entrances (fade-up pattern).
+  static const double riseOffset = 12.0;
+
+  // Stagger rhythm for list/grid entrances.
+  static const Duration staggerStep = Duration(milliseconds: 40);
+  static const int staggerWindow = 6;
 }
+
+/// True when the user has asked the platform to minimize animation
+/// (e.g. Android "remove animations", iOS "Reduce Motion", web media query).
+bool appPrefersReducedMotion(BuildContext context) =>
+    MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
 class AppCurrency {
   static const String symbol = '₹';

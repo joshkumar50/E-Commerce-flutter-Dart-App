@@ -4,6 +4,8 @@ import 'package:opem/core/admin_theme.dart';
 import 'package:opem/models/category.dart';
 import 'package:opem/services/category_service.dart';
 import 'package:opem/services/storage_service.dart';
+import 'package:opem/utils/validators.dart';
+import 'package:flutter/services.dart';
 
 class AdminCategoryFormScreen extends StatefulWidget {
   final Category? category;
@@ -211,10 +213,13 @@ class _AdminCategoryFormScreenState extends State<AdminCategoryFormScreen> {
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _imageUrlController,
+                      maxLength: 1000,
                       decoration: const InputDecoration(
                         labelText: 'Or Image URL',
                         prefixIcon: Icon(Icons.link),
+                        counterText: '',
                       ),
+                      validator: (v) => AppValidators.validateSanitized(v, fieldName: 'Image URL'),
                       onChanged: (_) => setState(() {}),
                     ),
                   ],
@@ -231,6 +236,8 @@ class _AdminCategoryFormScreenState extends State<AdminCategoryFormScreen> {
                   children: [
                     TextFormField(
                       controller: _nameController,
+                      maxLength: 100,
+                      inputFormatters: [AppInputFormatters.safeText],
                       decoration: const InputDecoration(
                         labelText: 'Category Name *',
                         hintText: 'e.g. Dairy & Eggs',
@@ -240,27 +247,33 @@ class _AdminCategoryFormScreenState extends State<AdminCategoryFormScreen> {
                         if (val == null || val.trim().isEmpty) {
                           return 'Category name is required';
                         }
-                        return null;
+                        return AppValidators.validateSanitized(val, fieldName: 'Category Name');
                       },
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 2,
+                      maxLength: 500,
+                      inputFormatters: [AppInputFormatters.safeText],
                       decoration: const InputDecoration(
                         labelText: 'Description (Optional)',
                         hintText: 'e.g. Farm-fresh milk, butter, cheese, and eggs',
                         prefixIcon: Icon(Icons.notes_outlined),
                       ),
+                      validator: (val) => AppValidators.validateSanitized(val, fieldName: 'Description'),
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _sortOrderController,
+                      maxLength: 4,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         labelText: 'Display Sort Order *',
                         hintText: 'Lower numbers display first (e.g. 1, 2, 3)',
                         prefixIcon: Icon(Icons.format_list_numbered),
+                        counterText: '',
                       ),
                       validator: (val) {
                         if (val == null || val.trim().isEmpty) return 'Required';

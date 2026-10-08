@@ -21,30 +21,32 @@ import 'package:opem/screens/customer/order_detail_screen.dart';
 import 'package:opem/screens/customer/order_history_screen.dart';
 import 'package:opem/screens/customer/payment_result_screen.dart';
 import 'package:opem/screens/phone_login_screen.dart';
+import 'package:opem/screens/splash_screen.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/utils/constants.dart';
 
 /// Named route constants for customer app and auth.
 class Routes {
-  static const login          = '/login';
-  static const register       = '/register';
-  static const phoneLogin     = '/phone-login';
-  static const home           = '/';
-  static const productDetail  = '/product';
-  static const search         = '/search';
-  static const cart           = '/cart';
-  static const wishlist       = '/wishlist';
-  static const addresses      = '/addresses';
+  static const splash = '/splash';
+  static const login = '/login';
+  static const register = '/register';
+  static const phoneLogin = '/phone-login';
+  static const home = '/';
+  static const productDetail = '/product';
+  static const search = '/search';
+  static const cart = '/cart';
+  static const wishlist = '/wishlist';
+  static const addresses = '/addresses';
   static const forgotPassword = '/forgot-password';
-  static const checkout       = '/checkout';
-  static const paymentResult  = '/payment-result';
-  static const orders         = '/orders';
+  static const checkout = '/checkout';
+  static const paymentResult = '/payment-result';
+  static const orders = '/orders';
 
   // Legacy routes preserved for backward compatibility
-  static const sell           = '/sell';
-  static const myProducts     = '/my-products';
-  static const buyOrders      = '/buy-orders';
-  static const sellOrders     = '/sell-orders';
+  static const sell = '/sell';
+  static const myProducts = '/my-products';
+  static const buyOrders = '/buy-orders';
+  static const sellOrders = '/sell-orders';
 }
 
 /// Listenable that notifies GoRouter to re-evaluate route redirection
@@ -68,29 +70,40 @@ class AuthRouterListenable extends ChangeNotifier {
 final authRouterListenable = AuthRouterListenable();
 
 final appRouter = GoRouter(
-  initialLocation: authService.isSignedIn ? Routes.home : Routes.login,
+  initialLocation: Routes.splash,
   refreshListenable: authRouterListenable,
   redirect: (context, state) {
     if (isDemoMode) return null;
 
-    final signedIn = authService.isSignedIn;
     final loc = state.matchedLocation;
+    
+    // Always allow the splash screen to display and manage its own navigation
+    if (loc == Routes.splash) return null;
+
+    final signedIn = authService.isSignedIn;
     final isAuthScreen = loc == Routes.login ||
         loc == Routes.register ||
         loc == Routes.phoneLogin ||
         loc == Routes.forgotPassword;
 
     if (!signedIn && !isAuthScreen) return Routes.login;
-    if (signedIn && (loc == Routes.login || loc == Routes.register || loc == Routes.phoneLogin)) {
+    if (signedIn &&
+        (loc == Routes.login ||
+            loc == Routes.register ||
+            loc == Routes.phoneLogin)) {
       return Routes.home;
     }
     return null;
   },
   routes: [
+    GoRoute(path: Routes.splash, builder: (_, __) => const SplashScreen()),
     GoRoute(path: Routes.login, builder: (_, __) => const LoginScreen()),
     GoRoute(path: Routes.register, builder: (_, __) => const RegisterScreen()),
-    GoRoute(path: Routes.phoneLogin, builder: (_, __) => const PhoneLoginScreen()),
-    GoRoute(path: Routes.forgotPassword, builder: (_, __) => ForgotPasswordScreen()),
+    GoRoute(
+        path: Routes.phoneLogin, builder: (_, __) => const PhoneLoginScreen()),
+    GoRoute(
+        path: Routes.forgotPassword,
+        builder: (_, __) => ForgotPasswordScreen()),
 
     // Customer App Main Navigation (Persistent Bottom Navigation)
     GoRoute(
@@ -105,7 +118,8 @@ final appRouter = GoRouter(
     // Product Detail
     GoRoute(
       path: Routes.productDetail,
-      builder: (_, state) => ProductDetailScreen(product: state.extra as Product),
+      builder: (_, state) =>
+          ProductDetailScreen(product: state.extra as Product),
     ),
 
     // Search
@@ -118,7 +132,8 @@ final appRouter = GoRouter(
     GoRoute(path: Routes.wishlist, builder: (_, __) => const WishlistScreen()),
 
     // Addresses
-    GoRoute(path: Routes.addresses, builder: (_, __) => const AddressesScreen()),
+    GoRoute(
+        path: Routes.addresses, builder: (_, __) => const AddressesScreen()),
 
     // Checkout & Payment
     GoRoute(path: Routes.checkout, builder: (_, __) => const CheckoutScreen()),
@@ -130,7 +145,8 @@ final appRouter = GoRouter(
     ),
 
     // Orders
-    GoRoute(path: Routes.orders, builder: (_, __) => const OrderHistoryScreen()),
+    GoRoute(
+        path: Routes.orders, builder: (_, __) => const OrderHistoryScreen()),
     GoRoute(
       path: '${Routes.orders}/:id',
       builder: (_, state) => OrderDetailScreen(
@@ -141,7 +157,8 @@ final appRouter = GoRouter(
 
     // Legacy Routes
     GoRoute(path: Routes.sell, builder: (_, __) => const SellScreen()),
-    GoRoute(path: Routes.myProducts, builder: (_, __) => const MyProductsScreen()),
+    GoRoute(
+        path: Routes.myProducts, builder: (_, __) => const MyProductsScreen()),
     GoRoute(path: Routes.buyOrders, builder: (_, __) => const BOrders()),
     GoRoute(path: Routes.sellOrders, builder: (_, __) => const SOrders()),
   ],

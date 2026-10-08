@@ -58,7 +58,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         backgroundColor: AppColors.background,
         appBar: AppBar(title: const Text('Order Details')),
         body: const Center(
-          child: Text('Order not found', style: TextStyle(color: AppColors.textSecondary)),
+          child: Text('Order not found',
+              style: TextStyle(color: AppColors.textSecondary)),
         ),
       );
     }
@@ -77,14 +78,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             decoration: BoxDecoration(
               color: order.status.badgeColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: order.status.badgeColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: order.status.badgeColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
                 Icon(
                   order.status == OrderStatus.completed
                       ? Icons.check_circle
-                      : (order.status == OrderStatus.cancelled || order.status == OrderStatus.paymentFailed
+                      : (order.status == OrderStatus.cancelled ||
+                              order.status == OrderStatus.paymentFailed
                           ? Icons.cancel
                           : Icons.hourglass_top),
                   color: order.status.badgeColor,
@@ -106,7 +109,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'Placed on ${AppFormatters.formatDateTime(order.createdAt)}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -130,7 +134,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               children: [
                 Text(
                   'Order Items (${order.items.length})',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 const Divider(height: 16, color: AppColors.borderLight),
                 ...order.items.map((item) {
@@ -149,7 +154,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               width: 46,
                               height: 46,
                               color: AppColors.surfaceMuted,
-                              child: const Icon(Icons.local_grocery_store, size: 20),
+                              child: const Icon(Icons.local_grocery_store,
+                                  size: 20),
                             ),
                           ),
                         ),
@@ -160,19 +166,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             children: [
                               Text(
                                 item.productNameSnapshot,
-                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600, fontSize: 13),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${item.quantity} x ₹${item.unitPrice.toStringAsFixed(2)} • ${item.unitSnapshot}',
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary),
                               ),
                             ],
                           ),
                         ),
                         Text(
                           '₹${item.lineTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
                     ),
@@ -201,30 +211,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     SizedBox(width: 8),
                     Text(
                       'Delivery Address Snapshot',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Text(
                   order.shippingAddress.fullName,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${order.shippingAddress.addressLine1}${order.shippingAddress.addressLine2.isNotEmpty ? ', ${order.shippingAddress.addressLine2}' : ''}\n${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.postalCode}',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.3),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                      height: 1.3),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Phone: ${order.shippingAddress.phone}',
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  style:
+                      const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 ),
                 if (order.notes.isNotEmpty) ...[
                   const Divider(height: 16, color: AppColors.borderLight),
                   Text(
                     'Notes: ${order.notes}',
-                    style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 12,
+                        color: AppColors.textSecondary),
                   ),
                 ],
               ],
@@ -249,15 +268,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 const SizedBox(height: 12),
-                _SummaryRow(title: 'Item Subtotal', value: '₹${order.subtotal.toStringAsFixed(2)}'),
+                _SummaryRow(
+                    title: 'Item Subtotal',
+                    value: '₹${order.subtotal.toStringAsFixed(2)}'),
                 const SizedBox(height: 8),
                 _SummaryRow(
                   title: 'Delivery Fee',
-                  value: order.deliveryFee == 0.0 ? 'FREE' : '₹${order.deliveryFee.toStringAsFixed(2)}',
-                  valueColor: order.deliveryFee == 0.0 ? AppColors.primary : null,
+                  value: order.deliveryFee == 0.0
+                      ? 'FREE'
+                      : '₹${order.deliveryFee.toStringAsFixed(2)}',
+                  valueColor:
+                      order.deliveryFee == 0.0 ? AppColors.primary : null,
                 ),
                 const SizedBox(height: 8),
-                _SummaryRow(title: 'Taxes / GST', value: '₹${order.taxTotal.toStringAsFixed(2)}'),
+                _SummaryRow(
+                    title: 'Taxes / GST',
+                    value: '₹${order.taxTotal.toStringAsFixed(2)}'),
                 if (order.discountTotal > 0) ...[
                   const SizedBox(height: 8),
                   _SummaryRow(
@@ -277,7 +303,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 _SummaryRow(
                   title: 'Payment Status',
                   value: order.paymentStatus.label,
-                  valueColor: order.paymentStatus == PaymentStatus.captured ? AppColors.primary : AppColors.accent,
+                  valueColor: order.paymentStatus == PaymentStatus.captured
+                      ? AppColors.primary
+                      : AppColors.accent,
                 ),
               ],
             ),

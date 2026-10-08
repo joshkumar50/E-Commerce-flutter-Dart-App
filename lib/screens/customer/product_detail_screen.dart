@@ -42,7 +42,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _checkFavorite() async {
     final uid = authService.currentUserId;
     if (uid == null) return;
-    final fav = await wishlistService.isFavorite(userId: uid, productId: widget.product.id);
+    final fav = await wishlistService.isFavorite(
+        userId: uid, productId: widget.product.id);
     if (mounted) setState(() => _isFavorite = fav);
   }
 
@@ -64,7 +65,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _isFavorite = fav;
         _isLoadingFavorite = false;
       });
-      EasyLoading.showToast(fav ? 'Added to favorites' : 'Removed from favorites');
+      EasyLoading.showToast(
+          fav ? 'Added to favorites' : 'Removed from favorites');
     }
   }
 
@@ -75,7 +77,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     int discountPct = 0;
     if (product.hasDiscount && product.price > 0) {
-      discountPct = (((product.price - product.salePrice!) / product.price) * 100).round();
+      discountPct =
+          (((product.price - product.salePrice!) / product.price) * 100)
+              .round();
     }
 
     return Scaffold(
@@ -99,7 +103,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 border: Border.all(color: AppColors.borderLight),
               ),
               child: Icon(
-                _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                _isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 color: _isFavorite ? AppColors.saleRed : AppColors.textPrimary,
                 size: 22,
               ),
@@ -208,7 +214,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.bolt_rounded, size: 14, color: AppColors.accent),
+                            Icon(Icons.bolt_rounded,
+                                size: 14, color: AppColors.accent),
                             SizedBox(width: AppSpacing.xxs),
                             Text(
                               '10-15 mins',
@@ -271,15 +278,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           vertical: AppSpacing.xs,
                         ),
                         decoration: BoxDecoration(
-                          color: product.inStock ? AppColors.primarySoft : AppColors.saleRedSoft,
+                          color: product.inStock
+                              ? AppColors.primarySoft
+                              : AppColors.saleRedSoft,
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Text(
-                          product.inStock ? 'In Stock (${product.stockQuantity})' : 'Out of Stock',
+                          product.inStock
+                              ? 'In Stock (${product.stockQuantity})'
+                              : 'Out of Stock',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: product.inStock ? AppColors.primaryDark : AppColors.saleRed,
+                            color: product.inStock
+                                ? AppColors.primaryDark
+                                : AppColors.saleRed,
                           ),
                         ),
                       ),
@@ -378,7 +391,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          border: const Border(top: BorderSide(color: AppColors.border, width: 1)),
+          border:
+              const Border(top: BorderSide(color: AppColors.border, width: 1)),
           boxShadow: AppShadows.floating,
         ),
         child: SafeArea(
@@ -395,11 +409,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove_rounded, size: 18),
-                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                      onPressed: _quantity > 1
+                          ? () => setState(() => _quantity--)
+                          : null,
                     ),
                     Text(
                       '$_quantity',
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 16),
                     ),
                     IconButton(
                       icon: const Icon(Icons.add_rounded, size: 18),
@@ -427,9 +444,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         }
                       : null,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: product.inStock ? AppColors.primary : AppColors.surfaceMuted,
+                      color: product.inStock
+                          ? AppColors.primary
+                          : AppColors.surfaceMuted,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       boxShadow: product.inStock ? AppShadows.subtle : null,
                     ),
@@ -438,7 +458,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       children: [
                         Icon(
                           Icons.shopping_bag_outlined,
-                          color: product.inStock ? Colors.white : AppColors.textMuted,
+                          color: product.inStock
+                              ? Colors.white
+                              : AppColors.textMuted,
                           size: 20,
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -449,7 +471,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 15,
-                            color: product.inStock ? Colors.white : AppColors.textMuted,
+                            color: product.inStock
+                                ? Colors.white
+                                : AppColors.textMuted,
                           ),
                         ),
                       ],

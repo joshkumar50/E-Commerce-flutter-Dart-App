@@ -6,6 +6,7 @@ import 'package:opem/models/product.dart';
 import 'package:opem/services/category_service.dart';
 import 'package:opem/services/product_service.dart';
 import 'package:opem/widgets/product_card.dart';
+import 'package:opem/widgets/ui/app_animations.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -22,7 +23,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(_selectedCategory != null ? _selectedCategory!.name : 'All Categories'),
+        title: Text(_selectedCategory != null
+            ? _selectedCategory!.name
+            : 'All Categories'),
         leading: _selectedCategory != null
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -62,9 +65,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           itemCount: categories.length,
           itemBuilder: (context, index) {
             final category = categories[index];
-            return _CategoryCard(
-              category: category,
-              onTap: () => setState(() => _selectedCategory = category),
+            return StaggeredEntrance(
+              index: index,
+              scope: 'categories-grid',
+              child: _CategoryCard(
+                category: category,
+                onTap: () => setState(() => _selectedCategory = category),
+              ),
             );
           },
         );
@@ -86,7 +93,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.shopping_bag_outlined, size: 48, color: AppColors.textMuted),
+                const Icon(Icons.shopping_bag_outlined,
+                    size: 48, color: AppColors.textMuted),
                 const SizedBox(height: 12),
                 Text(
                   'No items in ${category.name} right now.',
@@ -106,7 +114,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             mainAxisSpacing: 12,
           ),
           itemCount: products.length,
-          itemBuilder: (context, index) => ProductCard(product: products[index]),
+          itemBuilder: (context, index) =>
+              ProductCard(product: products[index]),
         );
       },
     );
@@ -184,7 +193,9 @@ class _CategoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    category.description.isNotEmpty ? category.description : 'Fresh produce',
+                    category.description.isNotEmpty
+                        ? category.description
+                        : 'Fresh produce',
                     style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.textSecondary,

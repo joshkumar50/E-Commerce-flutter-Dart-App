@@ -79,13 +79,17 @@ class _ProductCardState extends State<ProductCard> {
     // Discount percentage
     int discountPct = 0;
     if (widget.product.hasDiscount && widget.product.price > 0) {
-      discountPct = (((widget.product.price - widget.product.salePrice!) / widget.product.price) * 100).round();
+      discountPct = (((widget.product.price - widget.product.salePrice!) /
+                  widget.product.price) *
+              100)
+          .round();
     }
 
     final isOutOfStock = widget.product.stockQuantity <= 0;
 
     return PressableScale(
-      onTap: widget.onTap ?? () => context.push(Routes.productDetail, extra: widget.product),
+      onTap: widget.onTap ??
+          () => context.push(Routes.productDetail, extra: widget.product),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -108,6 +112,18 @@ class _ProductCardState extends State<ProductCard> {
                         ? Image.network(
                             widget.product.imageUrl,
                             fit: BoxFit.cover,
+                            // Cross-fade the first frame in over the muted
+                            // placeholder instead of popping it in.
+                            frameBuilder:
+                                (context, child, frame, wasSyncLoaded) {
+                              if (wasSyncLoaded) return child;
+                              return AnimatedOpacity(
+                                opacity: frame == null ? 0 : 1,
+                                duration: AppMotion.slow,
+                                curve: AppMotion.decelerate,
+                                child: child,
+                              );
+                            },
                             errorBuilder: (_, __, ___) => const Center(
                               child: Icon(
                                 Icons.local_grocery_store_outlined,
@@ -115,22 +131,6 @@ class _ProductCardState extends State<ProductCard> {
                                 size: 36,
                               ),
                             ),
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) return child;
-                              return Container(
-                                color: AppColors.surfaceMuted,
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
                           )
                         : const Center(
                             child: Icon(
@@ -174,7 +174,8 @@ class _ProductCardState extends State<ProductCard> {
                     left: AppSpacing.sm,
                     right: AppSpacing.sm,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -204,9 +205,13 @@ class _ProductCardState extends State<ProductCard> {
                         boxShadow: AppShadows.subtle,
                       ),
                       child: Icon(
-                        _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        _isFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
                         size: 16,
-                        color: _isFavorite ? AppColors.saleRed : AppColors.textMuted,
+                        color: _isFavorite
+                            ? AppColors.saleRed
+                            : AppColors.textMuted,
                       ),
                     ),
                   ),
@@ -268,7 +273,8 @@ class _ProductCardState extends State<ProductCard> {
                                   ),
                                 ),
                               Text(
-                                AppCurrency.format(widget.product.effectivePrice),
+                                AppCurrency.format(
+                                    widget.product.effectivePrice),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
@@ -310,12 +316,14 @@ class _ProductCardState extends State<ProductCard> {
                             },
                             onIncrement: () {
                               if (cartItem != null) {
-                                cart.updateQuantity(cartItem.id, inCartQuantity + 1);
+                                cart.updateQuantity(
+                                    cartItem.id, inCartQuantity + 1);
                               }
                             },
                             onDecrement: () {
                               if (cartItem != null) {
-                                cart.updateQuantity(cartItem.id, inCartQuantity - 1);
+                                cart.updateQuantity(
+                                    cartItem.id, inCartQuantity - 1);
                               }
                             },
                           ),

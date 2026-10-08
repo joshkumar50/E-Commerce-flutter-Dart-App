@@ -7,10 +7,12 @@ import 'package:uuid/uuid.dart';
 import '../models/analytics_event.dart';
 import '../utils/constants.dart';
 import '../utils/observability.dart';
+import 'remote_config_service.dart';
 
 /// Production Analytics Service
 /// Non-blocking, fault-isolated telemetry emitter.
 /// GUARANTEE: An analytics failure will NEVER disrupt browsing, cart operations, or checkout.
+/// SECURITY RULE: No PII (email, phone, address, DOB, payment info) may ever be included in properties.
 class AnalyticsService {
   static final AnalyticsService instance = AnalyticsService._();
   AnalyticsService._();
@@ -61,6 +63,9 @@ class AnalyticsService {
     String? entityId,
     Map<String, dynamic> properties = const {},
   }) {
+    if (RemoteConfigService.instance.isKillSwitchActive('disable_analytics')) {
+      return;
+    }
     // Run completely detached from current execution frame
     Future.microtask(() {
       try {

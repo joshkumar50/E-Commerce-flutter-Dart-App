@@ -6,6 +6,7 @@ import 'package:opem/models/wishlist_item.dart';
 import 'package:opem/services/auth_service.dart';
 import 'package:opem/services/wishlist_service.dart';
 import 'package:opem/widgets/product_card.dart';
+import 'package:opem/widgets/ui/app_animations.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -63,18 +64,23 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         color: AppColors.saleRedLight,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.favorite_border, size: 64, color: AppColors.saleRed),
+                      child: const Icon(Icons.favorite_border,
+                          size: 64, color: AppColors.saleRed),
                     ),
                     const SizedBox(height: 20),
                     const Text(
                       'Your wishlist is empty',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Tap the heart icon on any grocery item to save your favorites here.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -96,7 +102,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
               mainAxisSpacing: 12,
             ),
             itemCount: validProducts.length,
-            itemBuilder: (context, index) => ProductCard(product: validProducts[index]),
+            itemBuilder: (context, index) => StaggeredEntrance(
+              index: index,
+              scope: 'wishlist-grid',
+              child: ProductCard(product: validProducts[index]),
+            ),
           );
         },
       ),

@@ -1,12 +1,12 @@
 {
-  "version_name": "1.0.24",
-  "version_code": 24,
-  "release_tag": "v1.0.24",
-  "published_at": "2026-09-25T15:33:36Z",
-  "release_notes": "Continuous update built from commit 87151dd1ef510c548b733f35d00070d2ff896aff.",
+  "version_name": "1.0.35",
+  "version_code": 35,
+  "release_tag": "v1.0.35",
+  "published_at": "2026-10-08T15:12:53Z",
+  "release_notes": "Continuous update built from commit 288e5f8b9d14563ea9f15954cf6267d7c2d18c08.",
   "customer_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-customer-release.apk",
-  "customer_sha256": "ba0faf3324aeb6708832a1eef85303d00b88fffefe6a9b6400fe33537e40a7c4",
+  "customer_sha256": "3b0687942a664e8ebe491a19d2c668af5ce535041bd40d54a6ba98ef63ad2971",
   "admin_apk_url": "https://github.com/joshkumar50/E-Commerce-flutter-Dart-App/releases/latest/download/app-admin-release.apk",
-  "admin_sha256": "1d2e8e9c70a195146e98b6f098fcd1908c4aa3443e91ede07d08a0966cc45598",
+  "admin_sha256": "abc0c7ca600e6a40d27e7245c29019ba67d2be399db803b33de66de267f4d418",
   "force_update": false
 }

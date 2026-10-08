@@ -27,7 +27,7 @@ dependencies:
   flutter_easyloading: ^4.0.2
 
   # Auth
-  google_sign_in: ^6.3.0
+  google_sign_in: ^7.2.0
 
   # Media
   image_picker: ^1.1.2

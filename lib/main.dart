@@ -10,7 +10,7 @@ import 'package:opem/services/remote_config_service.dart';
 import 'package:opem/utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:opem/utils/observability.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

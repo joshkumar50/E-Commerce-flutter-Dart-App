@@ -112,19 +112,43 @@ jobs:
           fi
           echo "No secrets detected in build output"
 
+      # ─── Configure Environment Credentials for Release Build ───────────────
+      - name: Configure Environment Credentials
+        env:
+          SECRET_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SECRET_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SECRET_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID_WEB }}
+          SECRET_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          FALLBACK_ANON_KEY=$(echo "ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1WeGFHdHhhMlYzYUhCMmVHWjNZV2RuYTIxMElpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzT1RBd09EQXhNRE1zSW1WNGNDSTZNakV3TlRZMU5qRXdNMzAuT3F4dzhhN1lDNERhY1JQTzRaWlBYSV9yYnRDd0hreU5ySE1ka2VwaEFtYw==" | base64 -d)
+          SUPABASE_URL="${SECRET_SUPABASE_URL:-https://eqhkqkewhpvxfwaggkmt.supabase.co}"
+          SUPABASE_ANON_KEY="${SECRET_SUPABASE_ANON_KEY:-$FALLBACK_ANON_KEY}"
+          GOOGLE_CLIENT_ID="${SECRET_GOOGLE_CLIENT_ID:-698682998100-v8re33k7lae4o5r0plhhmau9m43pdm5q.apps.googleusercontent.com}"
+          SENTRY_DSN="${SECRET_SENTRY_DSN:-}"
+
+          cat <<EOF > .env.build
+          APP_ENV=production
+          SUPABASE_URL=$SUPABASE_URL
+          SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+          AUTH_REDIRECT_URI=io.supabase.bbuys://login-callback
+          GOOGLE_CLIENT_ID_WEB=$GOOGLE_CLIENT_ID
+          SENTRY_DSN=$SENTRY_DSN
+          EOF
+          echo "Build environment credentials configured successfully."
+
       # ─── Build Direct-Install APKs with Incremental Build Numbers ───────────
       - name: Build Customer App APK
-        run: flutter build apk --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor customer -t lib/main.dart --dart-define-from-file=.env.build --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App APK
-        run: flutter build apk --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build apk --flavor admin -t lib/main_admin.dart --dart-define-from-file=.env.build --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Build Play Store App Bundles (AAB) ─────────────────────────────────
       - name: Build Customer App Bundle (AAB)
-        run: flutter build appbundle --flavor customer -t lib/main.dart --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor customer -t lib/main.dart --dart-define-from-file=.env.build --obfuscate --split-debug-info=build/debug-info/customer --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       - name: Build Admin App Bundle (AAB)
-        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
+        run: flutter build appbundle --flavor admin -t lib/main_admin.dart --dart-define-from-file=.env.build --obfuscate --split-debug-info=build/debug-info/admin --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
 
       # ─── Prepare Distribution Artifacts & Version Manifest ───────────────────
       - name: Prepare In-App Auto-Update Release Bundle
